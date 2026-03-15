@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,133 +9,180 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  :root {
+  /* ── THEME VARIABLES ─────────────────────────────────────────────── */
+  :root[data-theme="dark"] {
     --bg: #0e1117; --bg2: #161b24; --bg3: #1c2230;
     --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.05);
-    --text: #e8eaf0; --text2: #8b92a5; --text3: #555e72;
+    --text: #e8eaf0; --text2: #8b92a5; --text3: #6a7385;
+    --axis-tick: #9ba3b5;
     --amber: #e8c46a; --amber-dim: rgba(232,196,106,0.12);
     --blue: #6ab4e8; --blue-dim: rgba(106,180,232,0.12);
     --green: #5ecf96; --green-dim: rgba(94,207,150,0.12);
     --red: #e87a6a; --red-dim: rgba(232,122,106,0.12);
-    --radius: 8px; --radius-sm: 5px;
-    --font: 'IBM Plex Sans', sans-serif; --mono: 'IBM Plex Mono', monospace;
+    --grid-line: rgba(255,255,255,0.045); --grid-border: rgba(255,255,255,0.10);
+    --tp-bg: #1c2230; --shadow: rgba(0,0,0,0.5);
+    --disclaimer-bg: rgba(232,196,106,0.06); --disclaimer-border: rgba(232,196,106,0.2);
+    --toggle-track: #2a3244; --toggle-icon: '☀';
   }
+  :root[data-theme="light"] {
+    --bg: #f5f6f8; --bg2: #ffffff; --bg3: #eef0f4;
+    --border: rgba(0,0,0,0.10); --border2: rgba(0,0,0,0.06);
+    --text: #1a1d26; --text2: #5a6070; --text3: #8a9098;
+    --axis-tick: #4a5060;
+    --amber: #b07a10; --amber-dim: rgba(176,122,16,0.10);
+    --blue: #1a6fb0; --blue-dim: rgba(26,111,176,0.10);
+    --green: #1a8a56; --green-dim: rgba(26,138,86,0.10);
+    --red: #c04040; --red-dim: rgba(192,64,64,0.10);
+    --grid-line: rgba(0,0,0,0.06); --grid-border: rgba(0,0,0,0.12);
+    --tp-bg: #ffffff; --shadow: rgba(0,0,0,0.12);
+    --disclaimer-bg: rgba(176,122,16,0.06); --disclaimer-border: rgba(176,122,16,0.25);
+    --toggle-track: #dde1e8; --toggle-icon: '☽';
+  }
+  /* Chart.js canvas line colors need JS-side adaptation; palette vars below for reference */
+  :root[data-theme="light"] {
+    --pal0: #b07010; --pal1: #1a6fb0; --pal2: #7040c0;
+    --pal3: #1a8a56; --pal4: #c04040; --pal5: #8040a0;
+    --can-line: #1a8a56;
+  }
+  :root[data-theme="dark"] {
+    --pal0: #e8c46a; --pal1: #6ab4e8; --pal2: #a370e8;
+    --pal3: #6ae8a3; --pal4: #e87a6a; --pal5: #d4a0f0;
+    --can-line: #5ecf96;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.2s, color 0.2s; }
 
-  .site-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
-  .logo { font-family: var(--mono); font-size: 14px; font-weight: 500; letter-spacing: 0.04em; }
+  /* ── HEADER ────────────────────────────────────────────────────────── */
+  .site-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .logo { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500; letter-spacing: 0.04em; }
   .logo span { color: var(--amber); }
-  .header-tag { font-size: 11px; color: var(--text3); font-family: var(--mono); letter-spacing: 0.05em; text-transform: uppercase; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .header-tag { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; }
 
-  .main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 64px; }
+  /* ── DARK/LIGHT TOGGLE ─────────────────────────────────────────────── */
+  .theme-toggle { display: flex; align-items: center; gap: 7px; cursor: pointer; user-select: none; }
+  .theme-toggle-track { width: 36px; height: 20px; border-radius: 10px; background: var(--toggle-track); border: 1px solid var(--border); position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .theme-toggle-thumb { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--amber); transition: left 0.2s, background 0.2s; }
+  [data-theme="light"] .theme-toggle-thumb { left: 18px; }
+  .theme-toggle-label { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; width: 28px; }
+
+  /* ── MAIN ──────────────────────────────────────────────────────────── */
+  .main { max-width: 1200px; margin: 0 auto; padding: 24px 24px 64px; }
   .page-title { font-size: 22px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.02em; }
-  .page-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+  .page-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
 
+  /* ── SERIES CARDS ──────────────────────────────────────────────────── */
   .series-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-  .sc { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 220px; flex: 1; max-width: 340px; transition: border-color 0.2s; }
-  .sc:hover { border-color: rgba(255,255,255,0.14); }
+  .sc { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 220px; flex: 1; max-width: 340px; transition: border-color 0.2s; }
+  .sc:hover { border-color: var(--grid-border); }
   .sh { display: flex; align-items: center; gap: 8px; }
   .sw { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
-  .st { font-size: 12px; font-weight: 500; font-family: var(--mono); letter-spacing: 0.02em; }
+  .st { font-size: 12px; font-weight: 500; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.02em; }
   .sx { margin-left: auto; background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 0 2px; transition: color 0.15s; }
   .sx:hover { color: var(--red); }
   .sc-r { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .sc-r select, .cfg-sel { font-size: 11px; padding: 4px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg3); color: var(--text); cursor: pointer; outline: none; transition: border-color 0.15s; }
+  .sc-r select, .cfg-sel { font-size: 11px; padding: 4px 8px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); cursor: pointer; outline: none; transition: border-color 0.15s; }
   .sc-r select:focus, .cfg-sel:focus { border-color: var(--amber); }
   .ck { font-size: 11px; color: var(--text2); display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; }
   .ck input[type=checkbox] { accent-color: var(--amber); cursor: pointer; }
 
-  .add-btn { font-size: 12px; padding: 6px 14px; border-radius: var(--radius-sm); border: 1px dashed var(--border); background: transparent; color: var(--text2); cursor: pointer; transition: all 0.15s; margin-bottom: 14px; }
+  .add-btn { font-size: 12px; padding: 6px 14px; border-radius: 5px; border: 1px dashed var(--border); background: transparent; color: var(--text2); cursor: pointer; transition: all 0.15s; margin-bottom: 14px; }
   .add-btn:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
 
+  /* ── OVERLAY BUTTONS ───────────────────────────────────────────────── */
   .overlay-row { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 12px; }
-  .overlay-label { font-size: 11px; color: var(--text3); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px; }
+  .overlay-label { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px; }
   .ob { font-size: 11px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; transition: all 0.15s; user-select: none; }
-  .ob:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
-  .ob.on-niit { background: var(--red-dim); color: var(--red); border-color: rgba(232,122,106,0.4); }
-  .ob.on-eff  { background: var(--blue-dim); color: var(--blue); border-color: rgba(106,180,232,0.4); }
-  .ob.on-can  { background: var(--green-dim); color: var(--green); border-color: rgba(94,207,150,0.4); }
-  .ob.on-state{ background: var(--amber-dim); color: var(--amber); border-color: rgba(232,196,106,0.4); }
+  .ob:hover { border-color: var(--grid-border); color: var(--text); }
+  .ob.on-niit  { background: var(--red-dim);   color: var(--red);   border-color: var(--red); }
+  .ob.on-eff   { background: var(--blue-dim);  color: var(--blue);  border-color: var(--blue); }
+  .ob.on-can   { background: var(--green-dim); color: var(--green); border-color: var(--green); }
+  .ob.on-state { background: var(--amber-dim); color: var(--amber); border-color: var(--amber); }
+  .ob.on-fica  { background: var(--red-dim);   color: var(--red);   border-color: var(--red); }
 
-  .cfg-panel { border-radius: var(--radius); padding: 12px 16px; margin-bottom: 12px; display: none; animation: fadeIn 0.15s ease; }
+  /* ── CONFIG PANELS ─────────────────────────────────────────────────── */
+  .cfg-panel { border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; display: none; animation: fadeIn 0.15s ease; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
   .cfg-panel.vis { display: block; }
-  .can-cfg-panel { border: 1px solid rgba(94,207,150,0.25); background: rgba(94,207,150,0.04); }
-  .state-cfg-panel { border: 1px solid rgba(232,196,106,0.25); background: rgba(232,196,106,0.04); }
+  .can-cfg-panel   { border: 1px solid rgba(94,207,150,0.25); background: var(--green-dim); }
+  .state-cfg-panel { border: 1px solid var(--amber); background: var(--amber-dim); opacity: 0.85; }
+  .fica-cfg-panel  { border: 1px solid var(--red); background: var(--red-dim); opacity: 0.85; }
   .cfg-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
   .cfg-lbl { font-size: 11px; color: var(--text2); margin-right: 4px; }
-  .state-note { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .state-note { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
 
   .fx-row { display: none; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
   .fx-row.vis { display: flex; }
   .fx-row label { font-size: 12px; color: var(--text2); }
-  .fx-input { width: 80px; font-size: 12px; padding: 5px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg3); color: var(--text); font-family: var(--mono); outline: none; }
+  .fx-input { width: 80px; font-size: 12px; padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); font-family: 'IBM Plex Mono', monospace; outline: none; }
   .fx-input:focus { border-color: var(--green); }
-  .fx-tag { font-size: 11px; padding: 3px 8px; border-radius: var(--radius-sm); background: var(--green-dim); color: var(--green); font-family: var(--mono); }
+  .fx-tag { font-size: 11px; padding: 3px 8px; border-radius: 5px; background: var(--green-dim); color: var(--green); font-family: 'IBM Plex Mono', monospace; }
 
-  /* Zoom bar */
+  /* ── ZOOM BAR ──────────────────────────────────────────────────────── */
   .zoom-bar { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; flex-wrap: wrap; }
-  .zoom-label { font-size: 11px; color: var(--text3); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 2px; }
-  .zp { font-size: 11px; padding: 4px 11px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; transition: all 0.15s; user-select: none; font-family: var(--mono); }
-  .zp:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
-  .zp.active { background: rgba(255,255,255,0.07); color: var(--text); border-color: rgba(255,255,255,0.2); font-weight: 500; }
-  .zoom-val { font-size: 11px; color: var(--text3); font-family: var(--mono); min-width: 70px; }
+  .zoom-label { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 2px; }
+  .zp { font-size: 11px; padding: 4px 11px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; transition: all 0.15s; user-select: none; font-family: 'IBM Plex Mono', monospace; }
+  .zp:hover { border-color: var(--grid-border); color: var(--text); }
+  .zp.active { background: var(--bg3); color: var(--text); border-color: var(--grid-border); font-weight: 500; }
+  .zoom-val { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; min-width: 70px; }
   .zoom-hint { font-size: 11px; color: var(--text3); margin-left: auto; font-style: italic; }
 
-  /* Chart wrapper */
-  .chart-wrap { position: relative; width: 100%; height: 420px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; user-select: none; }
+  /* ── CHART WRAP & HANDLE ───────────────────────────────────────────── */
+  .chart-wrap { position: relative; width: 100%; height: 420px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; user-select: none; }
+  .drag-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 20px; display: flex; align-items: center; justify-content: center; cursor: ew-resize; z-index: 20; touch-action: none; border-radius: 0 8px 8px 0; transition: background 0.15s; }
+  .drag-handle:hover, .drag-handle.dragging { background: var(--border); }
+  .drag-handle-inner { width: 5px; height: 44px; border-radius: 3px; background: var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: background 0.15s; }
+  .drag-handle:hover .drag-handle-inner, .drag-handle.dragging .drag-handle-inner { background: var(--text3); }
+  .drag-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text3); }
 
-  /* Drag handle */
-  .drag-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 20px; display: flex; align-items: center; justify-content: center; cursor: ew-resize; z-index: 20; touch-action: none; border-radius: 0 var(--radius) var(--radius) 0; transition: background 0.15s; }
-  .drag-handle:hover, .drag-handle.dragging { background: rgba(255,255,255,0.04); }
-  .drag-handle-inner { width: 5px; height: 44px; border-radius: 3px; background: rgba(255,255,255,0.12); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: background 0.15s; }
-  .drag-handle:hover .drag-handle-inner, .drag-handle.dragging .drag-handle-inner { background: rgba(255,255,255,0.3); }
-  .drag-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.5); }
-
-  .tp { position: absolute; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; font-size: 11px; pointer-events: none; display: none; z-index: 10; min-width: 200px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-
+  .tp { position: absolute; background: var(--tp-bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 11px; pointer-events: none; display: none; z-index: 10; min-width: 210px; box-shadow: 0 4px 20px var(--shadow); }
   .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; font-size: 11px; color: var(--text2); }
   .li { display: flex; align-items: center; gap: 6px; }
-  .fn { margin-bottom: 16px; font-size: 11px; color: var(--text3); border-left: 2px solid var(--border); padding-left: 10px; line-height: 1.7; display: none; font-family: var(--mono); }
+  .fn { margin-bottom: 16px; font-size: 11px; color: var(--text3); border-left: 2px solid var(--border); padding-left: 10px; line-height: 1.7; display: none; font-family: 'IBM Plex Mono', monospace; }
   .fn.vis { display: block; }
 
-  /* Lookup */
-  .lookup { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 24px; }
-  .lookup-hdr { background: var(--bg2); padding: 14px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
-  .lookup-title { font-size: 13px; font-weight: 600; font-family: var(--mono); letter-spacing: 0.03em; text-transform: uppercase; }
+  /* ── DISCLAIMER ────────────────────────────────────────────────────── */
+  .disclaimer { background: var(--disclaimer-bg); border: 1px solid var(--disclaimer-border); border-radius: 8px; padding: 12px 16px; margin-top: 20px; font-size: 11px; color: var(--text3); line-height: 1.7; font-family: 'IBM Plex Mono', monospace; }
+  .disclaimer strong { color: var(--text2); font-weight: 500; }
 
-  .currency-radio-group { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--bg3); }
+  /* ── LOOKUP ────────────────────────────────────────────────────────── */
+  .lookup { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 24px; }
+  .lookup-hdr { background: var(--bg2); padding: 14px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  .lookup-title { font-size: 13px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.03em; text-transform: uppercase; }
+  .currency-radio-group { display: flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; background: var(--bg3); }
   .currency-radio-group input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
-  .currency-radio-group label { display: inline-flex; align-items: center; padding: 6px 16px; font-size: 12px; font-weight: 500; font-family: var(--mono); letter-spacing: 0.04em; cursor: pointer; color: var(--text3); background: transparent; border: none; transition: all 0.15s; user-select: none; }
+  .currency-radio-group label { display: inline-flex; align-items: center; padding: 6px 14px; font-size: 12px; font-weight: 500; font-family: 'IBM Plex Mono', monospace; cursor: pointer; color: var(--text3); background: transparent; border: none; transition: all 0.15s; user-select: none; }
   .currency-radio-group label:first-of-type { border-right: 1px solid var(--border); }
   .currency-radio-group input[type="radio"]:checked + label { background: var(--amber); color: #0e1117; font-weight: 600; }
-
-  .inc-input { width: 130px; font-size: 13px; padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg3); color: var(--text); font-family: var(--mono); outline: none; transition: border-color 0.15s; }
+  [data-theme="light"] .currency-radio-group input[type="radio"]:checked + label { color: #fff; }
+  .inc-input { width: 130px; font-size: 13px; padding: 6px 10px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); font-family: 'IBM Plex Mono', monospace; outline: none; transition: border-color 0.15s; }
   .inc-input:focus { border-color: var(--amber); }
   .inc-input::placeholder { color: var(--text3); }
-  .inc-eq { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .inc-eq { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+  .lookup-fica-row { display: flex; align-items: center; gap: 8px; margin-left: auto; }
   .lookup-body { padding: 16px 20px; }
   .rate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
-  .rate-section { background: var(--bg2); border-radius: var(--radius); padding: 14px 16px; border-top: 2px solid transparent; }
-  .rate-section-title { font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; font-family: var(--mono); letter-spacing: 0.02em; }
-  .rate-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .rate-section { background: var(--bg2); border-radius: 8px; padding: 14px 16px; border-top: 2px solid transparent; }
+  .rate-section-title { font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.02em; }
+  .rate-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border2); }
   .rate-row:last-child { border-bottom: none; }
   .rate-lbl { font-size: 11px; color: var(--text2); }
-  .rate-val { font-size: 18px; font-weight: 600; font-family: var(--mono); }
-  .rate-sub { font-size: 10px; color: var(--text3); margin-top: 1px; font-family: var(--mono); }
-  .rate-bracket-row { display: flex; align-items: center; padding: 2px 0; font-size: 10px; color: var(--text3); font-family: var(--mono); }
+  .rate-val { font-size: 18px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+  .rate-sub { font-size: 10px; color: var(--text3); margin-top: 1px; font-family: 'IBM Plex Mono', monospace; }
+  .rate-bracket-row { display: flex; align-items: center; padding: 2px 0; font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
   .rate-bracket-row.active-bracket { color: var(--text); font-weight: 500; }
   .bk-arrow { margin-right: 4px; font-size: 9px; }
-  .niit-note { font-size: 10px; color: var(--red); margin-top: 2px; font-family: var(--mono); }
-  .no-tax-badge { font-size: 10px; padding: 2px 8px; border-radius: var(--radius-sm); background: rgba(94,207,150,0.12); color: var(--green); font-family: var(--mono); }
+  .niit-note { font-size: 10px; color: var(--red); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+  .no-tax-badge { font-size: 10px; padding: 2px 8px; border-radius: 5px; background: var(--green-dim); color: var(--green); font-family: 'IBM Plex Mono', monospace; }
+  .fica-row-detail { font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; padding: 2px 0; display: flex; justify-content: space-between; }
 
   @media (max-width: 640px) {
     .main { padding: 16px 14px 48px; }
     .sc { min-width: 100%; max-width: 100%; }
     .chart-wrap { height: 320px; }
-    .site-header { padding: 0 16px; }
-    .zoom-hint { display: none; }
+    .site-header { padding: 0 14px; }
+    .zoom-hint, .header-tag { display: none; }
   }
 </style>
 </head>
@@ -143,7 +190,13 @@
 
 <header class="site-header">
   <div class="logo">XB <span>Tax</span> Hub</div>
-  <div class="header-tag">US / Canada Tax Comparison · 2025–2026</div>
+  <div class="header-right">
+    <div class="header-tag">US / Canada Tax Comparison · 2025–2026</div>
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+      <div class="theme-toggle-track"><div class="theme-toggle-thumb"></div></div>
+      <span class="theme-toggle-label" id="themeLabel">Dark</span>
+    </div>
+  </div>
 </header>
 
 <main class="main">
@@ -159,6 +212,7 @@
     <button id="bEFF"   class="ob" onclick="tog('eff')">Effective rate curves</button>
     <button id="bSTATE" class="ob" onclick="tog('state')">State income tax</button>
     <button id="bCAN"   class="ob" onclick="tog('can')">Canadian tax rates</button>
+    <button id="bFICA"  class="ob" onclick="tog('fica')">FICA / CPP+EI</button>
   </div>
 
   <div class="cfg-panel state-cfg-panel" id="stateCfg">
@@ -167,6 +221,15 @@
         <select class="cfg-sel" id="stateSelect" onchange="draw();renderLookup()"></select>
       </div>
       <span id="stateNote" class="state-note"></span>
+    </div>
+  </div>
+
+  <div class="cfg-panel fica-cfg-panel" id="ficaCfg">
+    <div class="cfg-row">
+      <span class="cfg-lbl" style="font-weight:500">US FICA 2025:</span>
+      <span class="state-note">SS 6.2% (wage base $176,100) · Medicare 1.45% · Add'l Medicare 0.9% (&gt;$200k/$250k MFJ)</span>
+      <span class="cfg-lbl" style="margin-left:12px;font-weight:500">Canada 2025:</span>
+      <span class="state-note">CPP 5.95% (max $3,867.50) · CPP2 4% ($73,200–$81,900) · EI 1.66% (max $1,622)</span>
     </div>
   </div>
 
@@ -201,10 +264,9 @@
     <label>FX rate:</label>
     <input class="fx-input" type="number" id="fxVal" value="1.356" step="0.001" min="0.5" max="2.5" oninput="draw();renderLookup()">
     <span class="fx-tag">CAD / USD</span>
-    <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">Live ~1.356 (Mar 14 2026)</span>
+    <span style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace">Live ~1.356 (Mar 14 2026)</span>
   </div>
 
-  <!-- Zoom controls -->
   <div class="zoom-bar">
     <span class="zoom-label">View range:</span>
     <button class="zp" onclick="setZoom(200000)">$200k</button>
@@ -215,15 +277,12 @@
     <span class="zoom-hint">← drag right edge of chart to resize</span>
   </div>
 
-  <!-- Chart -->
   <div class="chart-wrap" id="chartWrap">
     <canvas id="TC"></canvas>
     <div class="tp" id="TP"></div>
-    <div class="drag-handle" id="dragHandle" title="Drag left/right to change chart range">
+    <div class="drag-handle" id="dragHandle" title="Drag to resize chart range">
       <div class="drag-handle-inner">
-        <div class="drag-dot"></div>
-        <div class="drag-dot"></div>
-        <div class="drag-dot"></div>
+        <div class="drag-dot"></div><div class="drag-dot"></div><div class="drag-dot"></div>
       </div>
     </div>
   </div>
@@ -240,21 +299,49 @@
         <input type="radio" name="currency" id="radioCAD" value="CAD" onchange="setCur('CAD')">
         <label for="radioCAD">CAD</label>
       </div>
-      <input class="inc-input" type="number" id="incomeInput" placeholder="e.g. 150,000" min="0" oninput="renderLookup()">
+      <input class="inc-input" type="number" id="incomeInput" placeholder="e.g. 150000" min="0" oninput="renderLookup()">
       <span class="inc-eq" id="incomeEqLabel"></span>
+      <div class="lookup-fica-row">
+        <label class="ck" id="ficaLookupRow" style="display:none">
+          <input type="checkbox" id="ficaLookup" checked onchange="renderLookup()">
+          <span>Include FICA / CPP+EI</span>
+        </label>
+      </div>
     </div>
     <div class="lookup-body" id="lookupBody">
-      <div style="font-size:12px;color:var(--text3);font-style:italic;font-family:var(--mono)">Enter an income above to see marginal and effective rates.</div>
+      <div style="font-size:12px;color:var(--text3);font-style:italic;font-family:'IBM Plex Mono',monospace">Enter an income above to see marginal and effective rates.</div>
     </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    <strong>Disclaimer:</strong> This tool is provided for <strong>illustrative and educational purposes only</strong> and does not constitute tax, legal, or financial advice.
+    Tax rates, brackets, and rules change frequently — always verify current figures with official government sources (IRS, CRA, and relevant provincial authorities).
+    Individual tax situations vary significantly. <strong>Do not rely on this tool for filing, planning, or compliance decisions</strong> without consulting a qualified tax professional.
+    Cross-border (US/Canada) taxation is complex; seek advice from an advisor experienced in both jurisdictions.
+    XB Tax Hub makes no representations as to the accuracy, completeness, or timeliness of the information presented.
   </div>
 </main>
 
 <script>
-// ── State data ───────────────────────────────────────────────────────
+// ── THEME ─────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const h=document.documentElement;const isDark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',isDark?'light':'dark');
+  document.getElementById('themeLabel').textContent=isDark?'Light':'Dark';
+  if(CI)draw();
+}
+function getPal(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  return dark?['#e8c46a','#6ab4e8','#a370e8','#6ae8a3','#e87a6a','#d4a0f0']:['#b07010','#1a6fb0','#7040c0','#1a8a56','#c04040','#8040a0'];
+}
+function getCanCol(){return document.documentElement.getAttribute('data-theme')==='dark'?'#5ecf96':'#1a8a56';}
+
+// ── STATE DATA ────────────────────────────────────────────────────────
 const STATES={AL:{name:'Alabama',type:'progressive',bk:{single:[{r:.02,lo:0,hi:500},{r:.04,lo:500,hi:3000},{r:.05,lo:3000,hi:1e9}],mfj:[{r:.02,lo:0,hi:1000},{r:.04,lo:1000,hi:6000},{r:.05,lo:6000,hi:1e9}]}},AK:{name:'Alaska',type:'none'},AZ:{name:'Arizona',type:'flat',rate:.025},AR:{name:'Arkansas',type:'progressive',bk:{single:[{r:.02,lo:0,hi:4400},{r:.04,lo:4400,hi:8800},{r:.044,lo:8800,hi:1e9}],mfj:[{r:.02,lo:0,hi:4400},{r:.04,lo:4400,hi:8800},{r:.044,lo:8800,hi:1e9}]}},CA:{name:'California',type:'progressive',bk:{single:[{r:.01,lo:0,hi:10756},{r:.02,lo:10756,hi:25499},{r:.04,lo:25499,hi:40245},{r:.06,lo:40245,hi:55866},{r:.08,lo:55866,hi:70606},{r:.093,lo:70606,hi:360659},{r:.103,lo:360659,hi:432787},{r:.113,lo:432787,hi:721314},{r:.123,lo:721314,hi:1e9}],mfj:[{r:.01,lo:0,hi:21512},{r:.02,lo:21512,hi:50998},{r:.04,lo:50998,hi:80490},{r:.06,lo:80490,hi:111732},{r:.08,lo:111732,hi:141212},{r:.093,lo:141212,hi:721318},{r:.103,lo:721318,hi:865574},{r:.113,lo:865574,hi:1e9}]},note:'CA adds 1% surcharge on income >$1M'},CO:{name:'Colorado',type:'flat',rate:.044},CT:{name:'Connecticut',type:'progressive',bk:{single:[{r:.03,lo:0,hi:10000},{r:.05,lo:10000,hi:50000},{r:.055,lo:50000,hi:100000},{r:.06,lo:100000,hi:200000},{r:.065,lo:200000,hi:250000},{r:.069,lo:250000,hi:500000},{r:.0699,lo:500000,hi:1e9}],mfj:[{r:.03,lo:0,hi:20000},{r:.05,lo:20000,hi:100000},{r:.055,lo:100000,hi:200000},{r:.06,lo:200000,hi:400000},{r:.065,lo:400000,hi:500000},{r:.069,lo:500000,hi:1000000},{r:.0699,lo:1000000,hi:1e9}]}},DE:{name:'Delaware',type:'progressive',bk:{single:[{r:.022,lo:2000,hi:5000},{r:.039,lo:5000,hi:10000},{r:.048,lo:10000,hi:20000},{r:.052,lo:20000,hi:25000},{r:.0555,lo:25000,hi:60000},{r:.066,lo:60000,hi:1e9}],mfj:[{r:.022,lo:2000,hi:5000},{r:.039,lo:5000,hi:10000},{r:.048,lo:10000,hi:20000},{r:.052,lo:20000,hi:25000},{r:.0555,lo:25000,hi:60000},{r:.066,lo:60000,hi:1e9}]}},FL:{name:'Florida',type:'none'},GA:{name:'Georgia',type:'flat',rate:.0519},HI:{name:'Hawaii',type:'progressive',bk:{single:[{r:.014,lo:0,hi:9600},{r:.032,lo:9600,hi:19200},{r:.055,lo:19200,hi:28800},{r:.064,lo:28800,hi:38400},{r:.068,lo:38400,hi:48000},{r:.072,lo:48000,hi:150000},{r:.076,lo:150000,hi:175000},{r:.079,lo:175000,hi:200000},{r:.0825,lo:200000,hi:325000},{r:.09,lo:325000,hi:400000},{r:.10,lo:400000,hi:600000},{r:.11,lo:600000,hi:1e9}],mfj:[{r:.014,lo:0,hi:19200},{r:.032,lo:19200,hi:38400},{r:.055,lo:38400,hi:57600},{r:.064,lo:57600,hi:76800},{r:.068,lo:76800,hi:96000},{r:.072,lo:96000,hi:300000},{r:.076,lo:300000,hi:350000},{r:.079,lo:350000,hi:400000},{r:.0825,lo:400000,hi:650000},{r:.09,lo:650000,hi:800000},{r:.10,lo:800000,hi:1e9}]}},ID:{name:'Idaho',type:'flat',rate:.053},IL:{name:'Illinois',type:'flat',rate:.0495},IN:{name:'Indiana',type:'flat',rate:.03},IA:{name:'Iowa',type:'flat',rate:.038},KS:{name:'Kansas',type:'progressive',bk:{single:[{r:.031,lo:0,hi:15000},{r:.0525,lo:15000,hi:30000},{r:.057,lo:30000,hi:1e9}],mfj:[{r:.031,lo:0,hi:30000},{r:.0525,lo:30000,hi:60000},{r:.057,lo:60000,hi:1e9}]}},KY:{name:'Kentucky',type:'flat',rate:.04},LA:{name:'Louisiana',type:'flat',rate:.03},ME:{name:'Maine',type:'progressive',bk:{single:[{r:.058,lo:0,hi:26050},{r:.0675,lo:26050,hi:61600},{r:.0715,lo:61600,hi:1e9}],mfj:[{r:.058,lo:0,hi:52100},{r:.0675,lo:52100,hi:123250},{r:.0715,lo:123250,hi:1e9}]}},MD:{name:'Maryland',type:'progressive',bk:{single:[{r:.02,lo:0,hi:1000},{r:.03,lo:1000,hi:2000},{r:.04,lo:2000,hi:3000},{r:.0475,lo:3000,hi:100000},{r:.05,lo:100000,hi:125000},{r:.0525,lo:125000,hi:150000},{r:.055,lo:150000,hi:250000},{r:.0575,lo:250000,hi:1e9}],mfj:[{r:.02,lo:0,hi:1000},{r:.03,lo:1000,hi:2000},{r:.04,lo:2000,hi:3000},{r:.0475,lo:3000,hi:150000},{r:.05,lo:150000,hi:175000},{r:.0525,lo:175000,hi:225000},{r:.055,lo:225000,hi:300000},{r:.0575,lo:300000,hi:1e9}]},note:'MD local tax (~3%) not included'},MA:{name:'Massachusetts',type:'progressive',bk:{single:[{r:.05,lo:0,hi:1e9}],mfj:[{r:.05,lo:0,hi:1e9}]},note:'MA adds 4% surtax on income >$1M'},MI:{name:'Michigan',type:'flat',rate:.0425},MN:{name:'Minnesota',type:'progressive',bk:{single:[{r:.0535,lo:0,hi:31690},{r:.068,lo:31690,hi:104090},{r:.0785,lo:104090,hi:193240},{r:.0985,lo:193240,hi:1e9}],mfj:[{r:.0535,lo:0,hi:46330},{r:.068,lo:46330,hi:184040},{r:.0785,lo:184040,hi:321450},{r:.0985,lo:321450,hi:1e9}]}},MS:{name:'Mississippi',type:'progressive',bk:{single:[{r:.0,lo:0,hi:10000},{r:.047,lo:10000,hi:1e9}],mfj:[{r:.0,lo:0,hi:10000},{r:.047,lo:10000,hi:1e9}]},note:'First $10k exempt'},MO:{name:'Missouri',type:'progressive',bk:{single:[{r:.015,lo:1207,hi:2414},{r:.02,lo:2414,hi:3621},{r:.025,lo:3621,hi:4828},{r:.03,lo:4828,hi:6035},{r:.035,lo:6035,hi:7242},{r:.04,lo:7242,hi:8432},{r:.045,lo:8432,hi:1e9}],mfj:[{r:.015,lo:1207,hi:2414},{r:.02,lo:2414,hi:3621},{r:.025,lo:3621,hi:4828},{r:.03,lo:4828,hi:6035},{r:.035,lo:6035,hi:7242},{r:.04,lo:7242,hi:8432},{r:.045,lo:8432,hi:1e9}]}},MT:{name:'Montana',type:'progressive',bk:{single:[{r:.047,lo:0,hi:20500},{r:.059,lo:20500,hi:1e9}],mfj:[{r:.047,lo:0,hi:41000},{r:.059,lo:41000,hi:1e9}]}},NE:{name:'Nebraska',type:'progressive',bk:{single:[{r:.0246,lo:0,hi:3700},{r:.0351,lo:3700,hi:22170},{r:.0501,lo:22170,hi:35730},{r:.0664,lo:35730,hi:1e9}],mfj:[{r:.0246,lo:0,hi:7390},{r:.0351,lo:7390,hi:44350},{r:.0501,lo:44350,hi:71460},{r:.0664,lo:71460,hi:1e9}]}},NV:{name:'Nevada',type:'none'},NH:{name:'New Hampshire',type:'none'},NJ:{name:'New Jersey',type:'progressive',bk:{single:[{r:.014,lo:0,hi:20000},{r:.0175,lo:20000,hi:35000},{r:.035,lo:35000,hi:40000},{r:.05525,lo:40000,hi:75000},{r:.0637,lo:75000,hi:500000},{r:.0897,lo:500000,hi:1e9}],mfj:[{r:.014,lo:0,hi:20000},{r:.0175,lo:20000,hi:50000},{r:.0245,lo:50000,hi:70000},{r:.035,lo:70000,hi:80000},{r:.05525,lo:80000,hi:150000},{r:.0637,lo:150000,hi:500000},{r:.0897,lo:500000,hi:1e9}]}},NM:{name:'New Mexico',type:'progressive',bk:{single:[{r:.015,lo:0,hi:5500},{r:.032,lo:5500,hi:11000},{r:.047,lo:11000,hi:16000},{r:.049,lo:16000,hi:210000},{r:.059,lo:210000,hi:1e9}],mfj:[{r:.015,lo:0,hi:8000},{r:.032,lo:8000,hi:16000},{r:.047,lo:16000,hi:24000},{r:.049,lo:24000,hi:315000},{r:.059,lo:315000,hi:1e9}]}},NY:{name:'New York',type:'progressive',bk:{single:[{r:.04,lo:0,hi:17150},{r:.045,lo:17150,hi:23600},{r:.0525,lo:23600,hi:27900},{r:.059,lo:27900,hi:161550},{r:.0633,lo:161550,hi:323200},{r:.0685,lo:323200,hi:2155350},{r:.0965,lo:2155350,hi:5000000},{r:.103,lo:5000000,hi:25000000},{r:.109,lo:25000000,hi:1e9}],mfj:[{r:.04,lo:0,hi:27900},{r:.045,lo:27900,hi:43000},{r:.0525,lo:43000,hi:161550},{r:.059,lo:161550,hi:323200},{r:.0633,lo:323200,hi:2155350},{r:.0685,lo:2155350,hi:5000000},{r:.0965,lo:5000000,hi:25000000},{r:.103,lo:25000000,hi:1e9}]},note:'NYC adds up to 3.876% city tax'},NC:{name:'North Carolina',type:'flat',rate:.0425},ND:{name:'North Dakota',type:'progressive',bk:{single:[{r:.0,lo:0,hi:44725},{r:.0195,lo:44725,hi:225975},{r:.025,lo:225975,hi:1e9}],mfj:[{r:.0,lo:0,hi:74750},{r:.0195,lo:74750,hi:275250},{r:.025,lo:275250,hi:1e9}]}},OH:{name:'Ohio',type:'progressive',bk:{single:[{r:.0,lo:0,hi:26050},{r:.0275,lo:26050,hi:100000},{r:.03135,lo:100000,hi:1e9}],mfj:[{r:.0,lo:0,hi:26050},{r:.0275,lo:26050,hi:100000},{r:.03135,lo:100000,hi:1e9}]}},OK:{name:'Oklahoma',type:'progressive',bk:{single:[{r:.0025,lo:1000,hi:2500},{r:.0075,lo:2500,hi:3750},{r:.0175,lo:3750,hi:4900},{r:.0275,lo:4900,hi:7200},{r:.0375,lo:7200,hi:8700},{r:.0475,lo:8700,hi:1e9}],mfj:[{r:.0025,lo:2000,hi:5000},{r:.0075,lo:5000,hi:7500},{r:.0175,lo:7500,hi:9800},{r:.0275,lo:9800,hi:12200},{r:.0375,lo:12200,hi:15000},{r:.0475,lo:15000,hi:1e9}]}},OR:{name:'Oregon',type:'progressive',bk:{single:[{r:.0475,lo:0,hi:4050},{r:.0675,lo:4050,hi:10200},{r:.0875,lo:10200,hi:125000},{r:.099,lo:125000,hi:1e9}],mfj:[{r:.0475,lo:0,hi:8100},{r:.0675,lo:8100,hi:20400},{r:.0875,lo:20400,hi:250000},{r:.099,lo:250000,hi:1e9}]}},PA:{name:'Pennsylvania',type:'flat',rate:.0307},RI:{name:'Rhode Island',type:'progressive',bk:{single:[{r:.0375,lo:0,hi:77450},{r:.0475,lo:77450,hi:176050},{r:.0599,lo:176050,hi:1e9}],mfj:[{r:.0375,lo:0,hi:77450},{r:.0475,lo:77450,hi:176050},{r:.0599,lo:176050,hi:1e9}]}},SC:{name:'South Carolina',type:'progressive',bk:{single:[{r:.0,lo:0,hi:3460},{r:.03,lo:3460,hi:17330},{r:.06,lo:17330,hi:1e9}],mfj:[{r:.0,lo:0,hi:3460},{r:.03,lo:3460,hi:17330},{r:.06,lo:17330,hi:1e9}]}},SD:{name:'South Dakota',type:'none'},TN:{name:'Tennessee',type:'none'},TX:{name:'Texas',type:'none'},UT:{name:'Utah',type:'flat',rate:.045},VT:{name:'Vermont',type:'progressive',bk:{single:[{r:.0335,lo:0,hi:45400},{r:.066,lo:45400,hi:110050},{r:.076,lo:110050,hi:229550},{r:.0875,lo:229550,hi:1e9}],mfj:[{r:.0335,lo:0,hi:75850},{r:.066,lo:75850,hi:183400},{r:.076,lo:183400,hi:279450},{r:.0875,lo:279450,hi:1e9}]}},VA:{name:'Virginia',type:'progressive',bk:{single:[{r:.02,lo:0,hi:3000},{r:.03,lo:3000,hi:5000},{r:.05,lo:5000,hi:17000},{r:.0575,lo:17000,hi:1e9}],mfj:[{r:.02,lo:0,hi:3000},{r:.03,lo:3000,hi:5000},{r:.05,lo:5000,hi:17000},{r:.0575,lo:17000,hi:1e9}]}},WA:{name:'Washington',type:'none',note:'No income tax; cap gains only'},WV:{name:'West Virginia',type:'progressive',bk:{single:[{r:.03,lo:0,hi:10000},{r:.04,lo:10000,hi:25000},{r:.045,lo:25000,hi:40000},{r:.06,lo:40000,hi:60000},{r:.065,lo:60000,hi:1e9}],mfj:[{r:.03,lo:0,hi:10000},{r:.04,lo:10000,hi:25000},{r:.045,lo:25000,hi:40000},{r:.06,lo:40000,hi:60000},{r:.065,lo:60000,hi:1e9}]}},WI:{name:'Wisconsin',type:'progressive',bk:{single:[{r:.035,lo:0,hi:14320},{r:.044,lo:14320,hi:28640},{r:.053,lo:28640,hi:315310},{r:.0765,lo:315310,hi:1e9}],mfj:[{r:.035,lo:0,hi:19090},{r:.044,lo:19090,hi:38190},{r:.053,lo:38190,hi:420420},{r:.0765,lo:420420,hi:1e9}]}},WY:{name:'Wyoming',type:'none'},DC:{name:'D.C.',type:'progressive',bk:{single:[{r:.04,lo:0,hi:10000},{r:.06,lo:10000,hi:40000},{r:.065,lo:40000,hi:60000},{r:.085,lo:60000,hi:250000},{r:.0925,lo:250000,hi:500000},{r:.0975,lo:500000,hi:1000000},{r:.1075,lo:1000000,hi:1e9}],mfj:[{r:.04,lo:0,hi:10000},{r:.06,lo:10000,hi:40000},{r:.065,lo:40000,hi:60000},{r:.085,lo:60000,hi:250000},{r:.0925,lo:250000,hi:500000},{r:.0975,lo:500000,hi:1000000},{r:.1075,lo:1000000,hi:1e9}]}}};
 const STATE_ORDER=['AK','AL','AR','AZ','CA','CO','CT','DC','DE','FL','GA','HI','IA','ID','IL','IN','KS','KY','LA','MA','MD','ME','MI','MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM','NV','NY','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VA','VT','WA','WI','WV','WY'];
 
-const PAL=[{l:'#e8c46a'},{l:'#6ab4e8'},{l:'#a370e8'},{l:'#6ae8a3'},{l:'#e87a6a'},{l:'#d4a0f0'}];
+// ── TAX DATA ─────────────────────────────────────────────────────────
 const NIIT_T={single:200000,mfj:250000,mfs:125000,hoh:200000};
 const STD={2025:{single:15000,mfj:30000,mfs:15000,hoh:22500},2026:{single:15350,mfj:30700,mfs:15350,hoh:23150}};
 const SLF={single:'Single',mfj:'Married Filing Jointly',mfs:'Married Filing Separately',hoh:'Head of Household'};
@@ -264,12 +351,69 @@ const CAN_FED={2025:[{r:.145,lo:0,hi:57375},{r:.205,lo:57375,hi:114750},{r:.26,l
 const CAN_BPA={2025:16129,2026:16452};
 const PROV={ON:{name:'Ontario',bpa:{2025:11865,2026:12096},bk:{2025:[{r:.0505,lo:0,hi:52886},{r:.0915,lo:52886,hi:105775},{r:.1116,lo:105775,hi:150000},{r:.1216,lo:150000,hi:220000},{r:.1316,lo:220000,hi:1e9}],2026:[{r:.0505,lo:0,hi:51446},{r:.0915,lo:51446,hi:102894},{r:.1116,lo:102894,hi:150000},{r:.1216,lo:150000,hi:220000},{r:.1316,lo:220000,hi:1e9}]},surtax:true},BC:{name:'British Columbia',bpa:{2025:11981,2026:12233},bk:{2025:[{r:.0506,lo:0,hi:49279},{r:.077,lo:49279,hi:98560},{r:.105,lo:98560,hi:113158},{r:.1229,lo:113158,hi:154906},{r:.147,lo:154906,hi:222420},{r:.168,lo:222420,hi:259829},{r:.205,lo:259829,hi:1e9}],2026:[{r:.0506,lo:0,hi:50196},{r:.077,lo:50196,hi:100392},{r:.105,lo:100392,hi:115247},{r:.1229,lo:115247,hi:157786},{r:.147,lo:157786,hi:226512},{r:.168,lo:226512,hi:264696},{r:.205,lo:264696,hi:1e9}]}},AB:{name:'Alberta',bpa:{2025:21867,2026:22323},bk:{2025:[{r:.08,lo:0,hi:60000},{r:.10,lo:60000,hi:148269},{r:.12,lo:148269,hi:177922},{r:.13,lo:177922,hi:237230},{r:.14,lo:237230,hi:362961},{r:.15,lo:362961,hi:1e9}],2026:[{r:.08,lo:0,hi:60000},{r:.10,lo:60000,hi:151234},{r:.12,lo:151234,hi:181450},{r:.13,lo:181450,hi:241926},{r:.14,lo:241926,hi:362961},{r:.15,lo:362961,hi:1e9}]}},QC:{name:'Quebec',bpa:{2025:17183,2026:17592},abate:0.165,bk:{2025:[{r:.14,lo:0,hi:53255},{r:.19,lo:53255,hi:106495},{r:.24,lo:106495,hi:129590},{r:.2575,lo:129590,hi:1e9}],2026:[{r:.14,lo:0,hi:54295},{r:.19,lo:54295,hi:108590},{r:.24,lo:108590,hi:132175},{r:.2575,lo:132175,hi:1e9}]}},SK:{name:'Saskatchewan',bpa:{2025:17661,2026:18021},bk:{2025:[{r:.105,lo:0,hi:53463},{r:.125,lo:53463,hi:152750},{r:.145,lo:152750,hi:1e9}],2026:[{r:.105,lo:0,hi:54656},{r:.125,lo:54656,hi:155879},{r:.145,lo:155879,hi:1e9}]}},MB:{name:'Manitoba',bpa:{2025:15780,2026:15780},bk:{2025:[{r:.108,lo:0,hi:47000},{r:.1275,lo:47000,hi:100000},{r:.174,lo:100000,hi:1e9}],2026:[{r:.108,lo:0,hi:47000},{r:.1275,lo:47000,hi:100000},{r:.174,lo:100000,hi:1e9}]}},NB:{name:'New Brunswick',bpa:{2025:12458,2026:12707},bk:{2025:[{r:.094,lo:0,hi:47715},{r:.14,lo:47715,hi:95431},{r:.16,lo:95431,hi:176756},{r:.195,lo:176756,hi:1e9}],2026:[{r:.094,lo:0,hi:47715},{r:.14,lo:47715,hi:95431},{r:.16,lo:95431,hi:176756},{r:.195,lo:176756,hi:1e9}]}},NS:{name:'Nova Scotia',bpa:{2025:8481,2026:8481},bk:{2025:[{r:.0879,lo:0,hi:29590},{r:.1495,lo:29590,hi:59180},{r:.1667,lo:59180,hi:93000},{r:.175,lo:93000,hi:150000},{r:.21,lo:150000,hi:1e9}],2026:[{r:.0879,lo:0,hi:29590},{r:.1495,lo:29590,hi:59180},{r:.1667,lo:59180,hi:93000},{r:.175,lo:93000,hi:150000},{r:.21,lo:150000,hi:1e9}]}},PE:{name:'PEI',bpa:{2025:12000,2026:12000},bk:{2025:[{r:.0965,lo:0,hi:32656},{r:.1363,lo:32656,hi:64313},{r:.1665,lo:64313,hi:105000},{r:.18,lo:105000,hi:140000},{r:.1875,lo:140000,hi:1e9}],2026:[{r:.0965,lo:0,hi:32656},{r:.1363,lo:32656,hi:64313},{r:.1665,lo:64313,hi:105000},{r:.18,lo:105000,hi:140000},{r:.1875,lo:140000,hi:1e9}]}},NL:{name:'NL',bpa:{2025:10840,2026:10840},bk:{2025:[{r:.087,lo:0,hi:43198},{r:.145,lo:43198,hi:86395},{r:.158,lo:86395,hi:154244},{r:.178,lo:154244,hi:215943},{r:.198,lo:215943,hi:275870},{r:.208,lo:275870,hi:551739},{r:.213,lo:551739,hi:1128858},{r:.218,lo:1128858,hi:1e9}],2026:[{r:.087,lo:0,hi:43198},{r:.145,lo:43198,hi:86395},{r:.158,lo:86395,hi:154244},{r:.178,lo:154244,hi:215943},{r:.198,lo:215943,hi:275870},{r:.208,lo:275870,hi:551739},{r:.213,lo:551739,hi:1128858},{r:.218,lo:1128858,hi:1e9}]}}};
 
+// ── FICA / CPP+EI DATA (2025) ─────────────────────────────────────────
+// US: employee share only
+const FICA={
+  ss_rate:0.062, ss_wage_base:176100,
+  mc_rate:0.0145,
+  addl_mc_rate:0.009,
+  addl_mc_thresh:{single:200000,mfj:250000,mfs:125000,hoh:200000}
+};
+// Canada: employee share. CPP1 max contrib $3867.50 on $68500 (above $3500 exemption)
+// CPP2: 4% on earnings $68500–$73200. EI: 1.66% up to insurable earnings $65700 (max $1049)
+// Using 2025 figures
+const CPP_EI={
+  cpp1_rate:0.0595, cpp1_exempt:3500, cpp1_max_earn:68500, cpp1_max_contrib:3867.50,
+  cpp2_rate:0.04,   cpp2_lo:68500, cpp2_hi:73200,
+  ei_rate:0.01657,  ei_max_earn:65700, ei_max_contrib:1089
+};
+
+function ficaCalc(wage,status){
+  // Returns {ss,mc,addl_mc,total,margRate}
+  const ss=Math.min(wage,FICA.ss_wage_base)*FICA.ss_rate;
+  const mc=wage*FICA.mc_rate;
+  const thresh=FICA.addl_mc_thresh[status]||200000;
+  const addl_mc=Math.max(0,wage-thresh)*FICA.addl_mc_rate;
+  const total=ss+mc+addl_mc;
+  // marginal rate at this wage level
+  let marg=FICA.mc_rate;
+  if(wage<FICA.ss_wage_base)marg+=FICA.ss_rate;
+  if(wage>thresh)marg+=FICA.addl_mc_rate;
+  return{ss,mc,addl_mc,total,marg};
+}
+function ficaMargRate(wage,status){
+  let m=FICA.mc_rate;
+  if(wage<FICA.ss_wage_base)m+=FICA.ss_rate;
+  if(wage>(FICA.addl_mc_thresh[status]||200000))m+=FICA.addl_mc_rate;
+  return m;
+}
+function cppEiCalc(cad){
+  // CPP1
+  const cpp1_inc=Math.max(0,Math.min(cad,CPP_EI.cpp1_max_earn)-CPP_EI.cpp1_exempt);
+  const cpp1=Math.min(cpp1_inc*CPP_EI.cpp1_rate,CPP_EI.cpp1_max_contrib);
+  // CPP2
+  const cpp2_inc=Math.max(0,Math.min(cad,CPP_EI.cpp2_hi)-CPP_EI.cpp2_lo);
+  const cpp2=cpp2_inc*CPP_EI.cpp2_rate;
+  // EI
+  const ei=Math.min(cad,CPP_EI.ei_max_earn)*CPP_EI.ei_rate;
+  const total=cpp1+cpp2+ei;
+  return{cpp1,cpp2,ei,total};
+}
+function cppEiMargRate(cad){
+  let m=0;
+  if(cad>CPP_EI.cpp1_exempt&&cad<CPP_EI.cpp1_max_earn)m+=CPP_EI.cpp1_rate;
+  if(cad>CPP_EI.cpp2_lo&&cad<CPP_EI.cpp2_hi)m+=CPP_EI.cpp2_rate;
+  if(cad<CPP_EI.ei_max_earn)m+=CPP_EI.ei_rate;
+  return m;
+}
+
+// ── CHART STATE ───────────────────────────────────────────────────────
 let series=[{id:0,year:'2026',status:'mfj',type:'ordinary',sd:true},{id:1,year:'2026',status:'mfj',type:'capgains',sd:true}];
-let nid=2,showNIIT=false,showEff=false,showCan=false,showState=false,CI=null,curCurrency='USD';
+let nid=2,showNIIT=false,showEff=false,showCan=false,showState=false,showFICA=false,CI=null,curCurrency='USD';
 let chartMax=900000;
 const MIN_MAX=100000,FULL_MAX=900000;
 
-// ── Drag handle ───────────────────────────────────────────────────────
+// ── DRAG HANDLE ───────────────────────────────────────────────────────
 function initDrag(){
   const handle=document.getElementById('dragHandle');
   const wrap=document.getElementById('chartWrap');
@@ -284,7 +428,6 @@ function initDrag(){
   window.addEventListener('mouseup',onEnd);
   window.addEventListener('touchend',onEnd);
 }
-
 function setZoom(v){chartMax=v;updateZoomUI();if(CI){CI.options.scales.x.max=chartMax;CI.update('none');}}
 function updateZoomUI(){
   document.getElementById('zoomVal').textContent='up to $'+(chartMax>=1e6?(chartMax/1e6).toFixed(1)+'M':(chartMax/1000).toFixed(0)+'k');
@@ -292,24 +435,65 @@ function updateZoomUI(){
   document.querySelectorAll('.zp').forEach((b,i)=>b.classList.toggle('active',presets[i]===chartMax));
 }
 
-// ── Math helpers ──────────────────────────────────────────────────────
+// ── MATH HELPERS ──────────────────────────────────────────────────────
 function mrate(bk,inc){for(let i=bk.length-1;i>=0;i--)if(inc>bk[i].lo)return bk[i].r;return 0;}
 function totalTax(bk,taxable){let t=0;for(const b of bk){if(taxable<=b.lo)break;const top=b.hi>=1e8?taxable:Math.min(taxable,b.hi);t+=(top-b.lo)*b.r;}return t;}
-function effUS(bk,agi,ded){return agi>0?(totalTax(bk,Math.max(0,agi-ded))/agi)*100:0;}
+function effUS(bk,agi,ded,ficaT=0){return agi>0?((totalTax(bk,Math.max(0,agi-ded))+ficaT)/agi)*100:0;}
 function stateTax(stCode,agi,status){const sd=STATES[stCode];if(!sd||sd.type==='none')return{tax:0,marg:0,type:'none'};if(sd.type==='flat')return{tax:agi*sd.rate,marg:sd.rate,type:'flat'};const bk=sd.bk[status==='mfj'?'mfj':'single']||sd.bk.single;return{tax:totalTax(bk,agi),marg:mrate(bk,agi),type:'progressive',bk};}
 function ontarioProvTax(cad,provBk,provBpa){const ti=Math.max(0,cad-provBpa);let base=0;for(const b of provBk){if(ti<=b.lo)break;const top=b.hi>=1e8?ti:Math.min(ti,b.hi);base+=(top-b.lo)*b.r;}let surtax=0;if(base>7307)surtax+=(base-7307)*0.36;if(base>5710)surtax+=Math.min(base-5710,Math.max(0,1597))*0.20;return base+surtax;}
 function canTaxBreakdown(cad,fedBk,fedBpa,scope,provKey,provYear,applyBpa,abate){const tiF=Math.max(0,cad-(applyBpa?fedBpa:0));let fedTax=totalTax(fedBk,tiF);fedTax*=(1-(abate||0));const fedMarg=mrate(fedBk,tiF)*(1-(abate||0));if(scope==='fed')return{fedTax,provTax:0,total:fedTax,fedMarg,provMarg:0,totalMarg:fedMarg,eff:cad>0?(fedTax/cad)*100:0};const pd=PROV[provKey];const pbpa=applyBpa?(pd.bpa[provYear]||pd.bpa[2025]):0;const provBk=pd.bk[provYear]||pd.bk[2025];let provTax=0,provMarg=0;if(pd.surtax){provTax=ontarioProvTax(cad,provBk,pbpa);provMarg=ontarioProvTax(cad+1,provBk,pbpa)-provTax;}else{provTax=totalTax(provBk,Math.max(0,cad-pbpa));provMarg=mrate(provBk,Math.max(0,cad-pbpa));}return{fedTax,provTax,total:fedTax+provTax,fedMarg,provMarg,totalMarg:fedMarg+provMarg,eff:cad>0?((fedTax+provTax)/cad)*100:0};}
 function buildCanBrackets(fedBk,provBk,abate){const breaks=[...new Set([0,...fedBk.map(b=>b.lo),...fedBk.map(b=>b.hi),...provBk.map(b=>b.lo),...provBk.map(b=>b.hi)].filter(v=>v<1e8))].sort((a,b)=>a-b);return breaks.map((lo,i)=>({lo,hi:i<breaks.length-1?breaks[i+1]:1e9,r:mrate(fedBk,lo+1)*(1-(abate||0))+mrate(provBk,lo+1)}));}
 function ontarioMargPts(fedBk,provBk,fedBpa,provBpa,abate,MAX,fx){const pts=[];for(let cad=0;cad<=MAX*fx+2000;cad+=2000){const tiF=Math.max(0,cad-fedBpa);let ft=totalTax(fedBk,tiF);ft*=(1-abate);const pt=ontarioProvTax(cad,provBk,provBpa);const tiF2=Math.max(0,cad+1-fedBpa);let ft2=totalTax(fedBk,tiF2);ft2*=(1-abate);const pt2=ontarioProvTax(cad+1,provBk,provBpa);const usd=cad/fx;if(usd<=MAX)pts.push({x:+usd.toFixed(0),y:+((ft2+pt2-ft-pt)*100).toFixed(2)});}return pts;}
-function steps(bk,ded,max){const pts=[];for(const b of bk){const lo=b.lo+ded,hi=Math.min(b.hi>=1e8?max:b.hi+ded,max);if(lo>=max)break;pts.push({x:Math.max(lo,0),y:b.r*100});pts.push({x:hi,y:b.r*100});}return pts;}
-function effCurveUS(bk,ded,max){const pts=[];for(let i=0;i<=150;i++){const a=(i/150)*max;pts.push({x:a,y:+effUS(bk,a,ded).toFixed(2)});}return pts;}
-function buildFedStateCurve(fedBk,statBk,fedDed,isFlat,flatRate,max){if(isFlat)return steps(fedBk,fedDed,max).map(p=>({x:p.x,y:+(p.y+flatRate*100).toFixed(2)}));const allBreaks=[...new Set([0,...fedBk.map(b=>b.lo),...fedBk.map(b=>b.hi),...statBk.map(b=>b.lo),...statBk.map(b=>b.hi)].filter(v=>v<1e8))].sort((a,b)=>a-b);const pts=[];for(let i=0;i<allBreaks.length;i++){const lo=allBreaks[i]+fedDed,hi=i<allBreaks.length-1?allBreaks[i+1]+fedDed:max;if(lo>=max)break;const r=(mrate(fedBk,allBreaks[i]+1)+mrate(statBk,allBreaks[i]+1))*100;pts.push({x:Math.max(0,lo),y:+r.toFixed(2)});pts.push({x:Math.min(hi,max),y:+r.toFixed(2)});}return pts;}
-function effCurveFedState(fedBk,stateCode,status,fedDed,max){const pts=[];for(let i=0;i<=150;i++){const agi=(i/150)*max;const ft=totalTax(fedBk,Math.max(0,agi-fedDed));const st=stateTax(stateCode,agi,status).tax;pts.push({x:agi,y:agi>0?+((ft+st)/agi*100).toFixed(2):0});}return pts;}
 
-// ── UI helpers ─────────────────────────────────────────────────────────
+// Build US marginal step points — dense sampling so tooltip works everywhere
+function steps(bk,ded,max){
+  // Use dense x-sampling at 1000-point intervals so hover resolves anywhere on line
+  const pts=[];
+  const allX=[0,...bk.map(b=>b.lo+ded),...bk.map(b=>b.hi>=1e8?max:b.hi+ded)].filter(x=>x>=0&&x<=max).sort((a,b)=>a-b);
+  // Add dense intermediate points
+  for(let i=0;i<=500;i++){const x=(i/500)*max;allX.push(x);}
+  const uniq=[...new Set(allX.map(x=>Math.round(x)))].sort((a,b)=>a-b).filter(x=>x<=max);
+  for(const x of uniq){const ti=Math.max(0,x-ded);pts.push({x,y:mrate(bk,ti)*100});}
+  return pts;
+}
+function effCurveUS(bk,ded,max,status='single'){
+  const pts=[];for(let i=0;i<=500;i++){const a=(i/500)*max;const fi=showFICA?ficaCalc(a,status).total:0;pts.push({x:a,y:+effUS(bk,a,ded,fi).toFixed(2)});}return pts;
+}
+function buildFedStateCurve(fedBk,statBk,fedDed,isFlat,flatRate,max,status){
+  const allBreaks=[...new Set([0,...fedBk.map(b=>b.lo),...fedBk.map(b=>b.hi),...(isFlat?[]:[...statBk.map(b=>b.lo),...statBk.map(b=>b.hi)])].filter(v=>v<1e8))].sort((a,b)=>a-b);
+  const pts=[];
+  for(let i=0;i<=500;i++){
+    const agi=(i/500)*max;const ti=Math.max(0,agi-fedDed);
+    const fm=mrate(fedBk,ti)*100;
+    const sm=(isFlat?flatRate:mrate(statBk,agi))*100;
+    const ficaM=showFICA?ficaMargRate(agi,status)*100:0;
+    pts.push({x:agi,y:+(fm+sm+ficaM).toFixed(2)});
+  }
+  return pts;
+}
+function effCurveFedState(fedBk,stateCode,status,fedDed,max){
+  const pts=[];for(let i=0;i<=500;i++){const agi=(i/500)*max;const ft=totalTax(fedBk,Math.max(0,agi-fedDed));const st=stateTax(stateCode,agi,status).tax;const fi=showFICA?ficaCalc(agi,status).total:0;pts.push({x:agi,y:agi>0?+((ft+st+fi)/agi*100).toFixed(2):0});}return pts;
+}
+// Dense FICA overlay curve (US)
+function ficaCurve(status,max){
+  const pts=[];for(let i=0;i<=500;i++){const w=(i/500)*max;pts.push({x:w,y:+(ficaMargRate(w,status)*100).toFixed(2)});}return pts;
+}
+// Dense CPP+EI curve (CAD -> USD)
+function cppEiCurve(max,fx){
+  const pts=[];for(let i=0;i<=500;i++){const usd=(i/500)*max;const cad=usd*fx;pts.push({x:usd,y:+(cppEiMargRate(cad)*100).toFixed(2)});}return pts;
+}
+
+// ── UI HELPERS ────────────────────────────────────────────────────────
 function buildStateDropdown(){const sel=document.getElementById('stateSelect');STATE_ORDER.forEach(code=>{const s=STATES[code];const opt=document.createElement('option');opt.value=code;opt.textContent=s.name+(s.type==='none'?' (no income tax)':'');if(code==='TX')opt.selected=true;sel.appendChild(opt);});}
 function getStateNote(){const code=document.getElementById('stateSelect').value;const s=STATES[code];const n=document.getElementById('stateNote');n.textContent=s.type==='none'?'No state income tax':s.type==='flat'?`Flat: ${(s.rate*100).toFixed(2)}%`:'Progressive brackets';if(s.note)n.textContent+=' · '+s.note;}
-function tog(w){if(w==='niit'){showNIIT=!showNIIT;document.getElementById('bNIIT').className='ob'+(showNIIT?' on-niit':'');}else if(w==='eff'){showEff=!showEff;document.getElementById('bEFF').className='ob'+(showEff?' on-eff':'');}else if(w==='state'){showState=!showState;document.getElementById('bSTATE').className='ob'+(showState?' on-state':'');document.getElementById('stateCfg').className='cfg-panel state-cfg-panel'+(showState?' vis':'');}else{showCan=!showCan;document.getElementById('bCAN').className='ob'+(showCan?' on-can':'');document.getElementById('canCfg').className='cfg-panel can-cfg-panel'+(showCan?' vis':'');document.getElementById('fxRow').className='fx-row'+(showCan?' vis':'');}draw();renderLookup();}
+function tog(w){
+  if(w==='niit'){showNIIT=!showNIIT;document.getElementById('bNIIT').className='ob'+(showNIIT?' on-niit':'');}
+  else if(w==='eff'){showEff=!showEff;document.getElementById('bEFF').className='ob'+(showEff?' on-eff':'');}
+  else if(w==='state'){showState=!showState;document.getElementById('bSTATE').className='ob'+(showState?' on-state':'');document.getElementById('stateCfg').className='cfg-panel state-cfg-panel'+(showState?' vis':'');}
+  else if(w==='fica'){showFICA=!showFICA;document.getElementById('bFICA').className='ob'+(showFICA?' on-fica':'');document.getElementById('ficaCfg').className='cfg-panel fica-cfg-panel'+(showFICA?' vis':'');document.getElementById('ficaLookupRow').style.display=showFICA?'flex':'none';}
+  else{showCan=!showCan;document.getElementById('bCAN').className='ob'+(showCan?' on-can':'');document.getElementById('canCfg').className='cfg-panel can-cfg-panel'+(showCan?' vis':'');document.getElementById('fxRow').className='fx-row'+(showCan?' vis':'');}
+  draw();renderLookup();
+}
 function onScopeChange(){document.getElementById('provRow').style.display=document.getElementById('canScope').value==='prov'?'inline-flex':'none';draw();renderLookup();}
 function addS(){if(series.length>=6)return;series.push({id:nid++,year:'2025',status:'single',type:'ordinary',sd:true});renderCtrl();draw();}
 function delS(id){series=series.filter(s=>s.id!==id);renderCtrl();draw();}
@@ -317,9 +501,9 @@ function updS(id,k,v){const s=series.find(s=>s.id===id);if(s){s[k]=v;draw();rend
 function setCur(c){curCurrency=c;renderLookup();}
 
 function renderCtrl(){
-  const c=document.getElementById('SC');c.innerHTML='';
+  const c=document.getElementById('SC');c.innerHTML='';const PAL=getPal();
   series.forEach((s,i)=>{
-    const col=PAL[i%PAL.length].l;const d=document.createElement('div');d.className='sc';
+    const col=PAL[i%PAL.length];const d=document.createElement('div');d.className='sc';
     d.innerHTML=`<div class="sh"><div class="sw" style="background:${col}"></div><span class="st">SERIES ${i+1}</span>${series.length>1?`<button class="sx" onclick="delS(${s.id})" title="Remove">✕</button>`:''}</div>
     <div class="sc-r">
       <select onchange="updS(${s.id},'year',this.value)"><option value="2025" ${s.year==='2025'?'selected':''}>2025</option><option value="2026" ${s.year==='2026'?'selected':''}>2026 (post-TCJA)</option></select>
@@ -329,9 +513,10 @@ function renderCtrl(){
     </div>`;c.appendChild(d);});
 }
 
-// ── Chart ──────────────────────────────────────────────────────────────
+// ── DRAW ──────────────────────────────────────────────────────────────
 function draw(){
   getStateNote();
+  const PAL=getPal();const cc=getCanCol();
   const MAX=FULL_MAX,DS=[],LI=[];
   const fx=parseFloat(document.getElementById('fxVal')?.value||1.356);
   const canScope=document.getElementById('canScope')?.value||'fed';
@@ -341,81 +526,170 @@ function draw(){
   const canEffOn=document.getElementById('canEff')?.checked;
   const stateCode=document.getElementById('stateSelect')?.value||'TX';
   const stateData=STATES[stateCode];
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const axisColor=isDark?'#9ba3b5':'#4a5060';
 
   series.forEach((s,i)=>{
-    const col=PAL[i%PAL.length].l;const fedBk=USB[s.type][s.year][s.status]||USB[s.type][s.year].single;const ded=s.sd?STD[s.year][s.status]||STD[s.year].single:0;
+    const col=PAL[i%PAL.length];
+    const fedBk=USB[s.type][s.year][s.status]||USB[s.type][s.year].single;
+    const ded=s.sd?STD[s.year][s.status]||STD[s.year].single:0;
     if(showState&&stateData.type!=='none'){
       const statBk=stateData.type==='flat'?null:(stateData.bk?.[s.status==='mfj'?'mfj':'single']||stateData.bk?.single);
-      DS.push({label:`s${i}cs`,data:buildFedStateCurve(fedBk,statBk,ded,stateData.type==='flat',stateData.rate||0,MAX),borderColor:col,borderWidth:2,pointRadius:0,tension:0,fill:false});
-      LI.push({col,lbl:`S${i+1} Fed+${stateData.name} — ${s.year} ${SLF[s.status].replace('Married Filing ','MF ').replace('Head of Household','HoH')}`});
-      if(showEff){DS.push({label:`s${i}ce`,data:effCurveFedState(fedBk,stateCode,s.status,ded,MAX),borderColor:col,borderWidth:1.5,borderDash:[2,3],pointRadius:0,tension:.3,fill:false});LI.push({col,dotted:true,lbl:`S${i+1} Fed+${stateData.name} effective`});}
+      DS.push({label:`s${i}cs`,data:buildFedStateCurve(fedBk,statBk,ded,stateData.type==='flat',stateData.rate||0,MAX,s.status),borderColor:col,borderWidth:2,pointRadius:0,tension:0,fill:false});
+      LI.push({col,lbl:`S${i+1} Fed+${stateData.name}${showFICA?'+FICA':''} — ${s.year} ${SLF[s.status].replace('Married Filing ','MF ').replace('Head of Household','HoH')}`});
+      if(showEff){DS.push({label:`s${i}ce`,data:effCurveFedState(fedBk,stateCode,s.status,ded,MAX),borderColor:col,borderWidth:1.5,borderDash:[2,3],pointRadius:0,tension:0,fill:false});LI.push({col,dotted:true,lbl:`S${i+1} effective`});}
     } else {
-      DS.push({label:`s${i}m`,data:steps(fedBk,ded,MAX),borderColor:col,borderWidth:2,borderDash:s.type==='capgains'?[6,4]:[],pointRadius:0,tension:0,fill:false});
-      LI.push({col,dash:s.type==='capgains',lbl:`S${i+1} Federal — ${s.year} ${SLF[s.status].replace('Married Filing ','MF ').replace('Head of Household','HoH')} ${s.type==='ordinary'?'Ord':'CG'}`});
-      if(showEff){DS.push({label:`s${i}e`,data:effCurveUS(fedBk,ded,MAX),borderColor:col,borderWidth:1.5,borderDash:[2,3],pointRadius:0,tension:.3,fill:false});LI.push({col,dotted:true,lbl:`S${i+1} Federal effective`});}
+      // Dense step curve for full hover coverage
+      const pts=steps(fedBk,ded,MAX);
+      if(showFICA){pts.forEach(p=>{p.y+=ficaMargRate(p.x,s.status)*100;});}
+      DS.push({label:`s${i}m`,data:pts,borderColor:col,borderWidth:2,borderDash:s.type==='capgains'?[6,4]:[],pointRadius:0,tension:0,fill:false});
+      LI.push({col,dash:s.type==='capgains',lbl:`S${i+1} Federal${showFICA?'+FICA':''} — ${s.year} ${SLF[s.status].replace('Married Filing ','MF ').replace('Head of Household','HoH')} ${s.type==='ordinary'?'Ord':'CG'}`});
+      if(showEff){DS.push({label:`s${i}e`,data:effCurveUS(fedBk,ded,MAX,s.status),borderColor:col,borderWidth:1.5,borderDash:[2,3],pointRadius:0,tension:0,fill:false});LI.push({col,dotted:true,lbl:`S${i+1} effective`});}
     }
   });
 
-  if(showNIIT){[...new Set(series.map(s=>s.status))].forEach(st=>{const th=NIIT_T[st];DS.push({label:`niit_${st}`,data:[{x:th,y:0},{x:th,y:26},{x:MAX,y:26},{x:MAX,y:0},{x:th,y:0}],borderColor:'rgba(232,122,106,.7)',borderWidth:1,borderDash:[3,3],pointRadius:0,tension:0,fill:{target:'origin',above:'rgba(232,122,106,.1)'},backgroundColor:'rgba(232,122,106,.1)'});});LI.push({niit:true,lbl:'NIIT zone (3.8%)'});}
+  if(showNIIT){[...new Set(series.map(s=>s.status))].forEach(st=>{const th=NIIT_T[st];DS.push({label:`niit_${st}`,data:[{x:th,y:0},{x:th,y:28},{x:MAX,y:28},{x:MAX,y:0},{x:th,y:0}],borderColor:'rgba(232,122,106,.7)',borderWidth:1,borderDash:[3,3],pointRadius:0,tension:0,fill:{target:'origin',above:'rgba(232,122,106,.1)'},backgroundColor:'rgba(232,122,106,.1)'});});LI.push({niit:true,lbl:'NIIT zone (3.8%)'});}
 
   if(showCan){
-    const cc='#5ecf96';const fedBk=CAN_FED[canYear];const fedBpa=applyBPA?CAN_BPA[canYear]:0;
+    const fedBk=CAN_FED[canYear];const fedBpa=applyBPA?CAN_BPA[canYear]:0;
     let margPts,label,abate=0;
-    if(canScope==='fed'){const allBreaks=[...new Set([0,...fedBk.map(b=>b.lo),...fedBk.map(b=>b.hi).filter(v=>v<1e8)])].sort((a,b)=>a-b);margPts=[];for(let i=0;i<allBreaks.length;i++){const loU=allBreaks[i]/fx+fedBpa/fx,hiU=i<allBreaks.length-1?allBreaks[i+1]/fx+fedBpa/fx:MAX;if(loU>=MAX)break;const r=mrate(fedBk,allBreaks[i]+1)*100;margPts.push({x:Math.max(0,loU),y:r});margPts.push({x:Math.min(hiU,MAX),y:r});}label=`Canada ${canYear} Fed only`;}
-    else{const pd=PROV[canProv];abate=pd.abate||0;const provBk=pd.bk[canYear]||pd.bk[2025];const provBpa=applyBPA?(pd.bpa[canYear]||pd.bpa[2025]):0;const totalBpaCAD=fedBpa+provBpa;const isON=canProv==='ON'&&pd.surtax;if(isON)margPts=ontarioMargPts(fedBk,provBk,fedBpa,provBpa,abate,MAX,fx);else{const cb=buildCanBrackets(fedBk,provBk,abate);margPts=[];for(const b of cb){const loU=b.lo/fx+totalBpaCAD/fx,hiU=b.hi>=1e8?MAX:b.hi/fx+totalBpaCAD/fx;if(loU>=MAX)break;margPts.push({x:Math.max(0,loU),y:b.r*100});margPts.push({x:Math.min(hiU,MAX),y:b.r*100});}}label=`Canada ${canYear} Fed+${pd.name}${isON?' (incl. surtax)':''}`;} 
+    if(canScope==='fed'){
+      // Dense sampling
+      margPts=[];for(let i=0;i<=500;i++){const usd=(i/500)*MAX;const cad=usd*fx;const tiF=Math.max(0,cad-fedBpa);const m=mrate(fedBk,tiF)*100;const cpp=showFICA?cppEiMargRate(cad)*100:0;margPts.push({x:usd,y:+(m+cpp).toFixed(2)});}
+      label=`Canada ${canYear} Fed${showFICA?'+CPP/EI':''} only`;
+    } else {
+      const pd=PROV[canProv];abate=pd.abate||0;const provBk=pd.bk[canYear]||pd.bk[2025];const provBpa=applyBPA?(pd.bpa[canYear]||pd.bpa[2025]):0;const isON=canProv==='ON'&&pd.surtax;
+      if(isON){margPts=ontarioMargPts(fedBk,provBk,fedBpa,provBpa,abate,MAX,fx);if(showFICA)margPts.forEach(p=>{p.y+=cppEiMargRate(p.x*fx)*100;});}
+      else{
+        margPts=[];for(let i=0;i<=500;i++){const usd=(i/500)*MAX;const cad=usd*fx;const tiF=Math.max(0,cad-fedBpa);const tiP=Math.max(0,cad-provBpa);const m=(mrate(fedBk,tiF)*(1-abate)+mrate(provBk,tiP))*100;const cpp=showFICA?cppEiMargRate(cad)*100:0;margPts.push({x:usd,y:+(m+cpp).toFixed(2)});}
+      }
+      label=`Canada ${canYear} Fed+${pd.name}${isON?' (incl. surtax)':''}${showFICA?'+CPP/EI':''}`;
+    }
     DS.push({label:'can_m',data:margPts,borderColor:cc,borderWidth:2.5,pointRadius:0,tension:0,fill:false});
     LI.push({col:cc,lbl:label+` @ ${fx.toFixed(3)} CAD/USD`});
-    if(canEffOn){const effPts=[];for(let i=0;i<=200;i++){const usd=(i/200)*MAX;const cad=usd*fx;const bd=canTaxBreakdown(cad,fedBk,fedBpa,canScope,canProv,canYear,applyBPA,abate);effPts.push({x:usd,y:+bd.eff.toFixed(2)});}DS.push({label:'can_e',data:effPts,borderColor:cc,borderWidth:1.5,borderDash:[2,3],pointRadius:0,tension:.3,fill:false});LI.push({col:cc,dotted:true,lbl:`${label} effective`});}
+    if(canEffOn){const effPts=[];for(let i=0;i<=500;i++){const usd=(i/500)*MAX;const cad=usd*fx;const bd=canTaxBreakdown(cad,fedBk,fedBpa,canScope,canProv,canYear,applyBPA,abate);const cpp=showFICA?cppEiCalc(cad).total:0;effPts.push({x:usd,y:cad>0?+((bd.total+cpp)/cad*100).toFixed(2):0});}DS.push({label:'can_e',data:effPts,borderColor:cc,borderWidth:1.5,borderDash:[2,3],pointRadius:0,tension:0,fill:false});LI.push({col:cc,dotted:true,lbl:`${label} effective`});}
   }
 
   document.getElementById('LG').innerHTML=LI.map(l=>{let sw='';if(l.niit)sw=`width:14px;height:14px;border-radius:2px;background:rgba(232,122,106,.1);border:1px dashed rgba(232,122,106,.6)`;else if(l.dotted)sw=`width:22px;height:3px;background:repeating-linear-gradient(90deg,${l.col} 0,${l.col} 2px,transparent 2px,transparent 6px)`;else if(l.dash)sw=`width:22px;height:3px;background:repeating-linear-gradient(90deg,${l.col} 0,${l.col} 5px,transparent 5px,transparent 9px)`;else sw=`width:22px;height:3px;border-radius:1px;background:${l.col}`;return `<div class="li"><div style="${sw}"></div><span>${l.lbl}</span></div>`;}).join('');
 
-  const fn=document.getElementById('FN');fn.className='fn'+(showCan||showState?' vis':'');let fnTxt='';if(showState&&stateData.type!=='none')fnTxt+=`State overlay stacks ${stateData.name} income tax on top of federal. `;if(showState&&stateData.type==='none')fnTxt+=`${stateData.name} has no state income tax — federal-only curves shown. `;if(showCan)fnTxt+=`X-axis in USD. Canadian brackets converted at ${fx.toFixed(3)} CAD/USD. BPA = CA$${CAN_BPA[canYear]?.toLocaleString()} (${canYear}).${canScope==='prov'&&canProv==='QC'?' QC includes 16.5% federal abatement.':''}`;fn.textContent=fnTxt;
+  const fn=document.getElementById('FN');fn.className='fn'+(showCan||showState||showFICA?' vis':'');let fnTxt='';
+  if(showState&&stateData.type!=='none')fnTxt+=`State overlay stacks ${stateData.name} income tax on federal. `;
+  if(showState&&stateData.type==='none')fnTxt+=`${stateData.name} has no state income tax — federal-only curves shown. `;
+  if(showFICA)fnTxt+=`FICA: SS 6.2% (wage base $176,100) + Medicare 1.45% + 0.9% Add'l Medicare above threshold. Canada: CPP1 5.95%, CPP2 4%, EI 1.657% — employee share, 2025 rates. `;
+  if(showCan)fnTxt+=`X-axis in USD. Canadian brackets converted at ${fx.toFixed(3)} CAD/USD.${canScope==='prov'&&canProv==='QC'?' QC includes 16.5% federal abatement.':''}`;
+  fn.textContent=fnTxt;
+
+  const gridCol=isDark?'rgba(255,255,255,0.045)':'rgba(0,0,0,0.06)';
+  const gridBorder=isDark?'rgba(255,255,255,0.10)':'rgba(0,0,0,0.12)';
+  const yMax=showFICA?75:62;
 
   const ctx=document.getElementById('TC').getContext('2d');
   if(CI)CI.destroy();
   CI=new Chart(ctx,{type:'line',data:{datasets:DS},options:{responsive:true,maintainAspectRatio:false,parsing:false,animation:false,
-    plugins:{legend:{display:false},tooltip:{enabled:false,external:cx=>{
-      const tp=document.getElementById('TP');if(!cx.tooltip.dataPoints||cx.tooltip.opacity===0){tp.style.display='none';return;}
-      const inc=cx.tooltip.dataPoints[0]?.parsed?.x;if(inc==null){tp.style.display='none';return;}
-      const fx2=parseFloat(document.getElementById('fxVal')?.value||1.356);const stCode=document.getElementById('stateSelect')?.value||'TX';
-      let h=`<div style="font-weight:600;margin-bottom:6px;color:#e8eaf0;font-family:'IBM Plex Mono',monospace;font-size:12px">$${Math.round(inc).toLocaleString()}</div>`;
-      series.forEach((s,i)=>{const col=PAL[i%PAL.length].l;const fedBk=USB[s.type][s.year][s.status]||USB[s.type][s.year].single;const ded=s.sd?STD[s.year][s.status]||STD[s.year].single:0;const ti=Math.max(0,inc-ded);const fedM=mrate(fedBk,ti)*100;const fedE=effUS(fedBk,inc,ded);let stM=0,stE=0;if(showState){const st=stateTax(stCode,inc,s.status);stM=st.marg*100;stE=inc>0?(st.tax/inc)*100:0;}const niit=showNIIT&&s.type==='capgains'&&inc>NIIT_T[s.status];h+=`<div style="border-top:1px solid rgba(255,255,255,0.06);padding:4px 0 2px"><div style="display:flex;align-items:center;gap:4px;font-size:10px;font-family:'IBM Plex Mono',monospace"><div style="width:6px;height:6px;border-radius:50%;background:${col}"></div><span style="color:#e8eaf0;font-weight:500">S${i+1}</span><span style="color:#8b92a5">${s.year}</span></div><div style="padding-left:10px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:#8b92a5;margin-top:1px">Marg: <span style="color:${col};font-weight:500">${(fedM+stM).toFixed(1)}%</span>${niit?`<span style="color:#e87a6a"> +NIIT→${(fedM+stM+3.8).toFixed(1)}%</span>`:''}${showEff?` · Eff: <span style="color:${col};font-weight:500">${(fedE+stE).toFixed(1)}%</span>`:''}</div></div>`;});
-      if(showCan){const canYear2=parseInt(document.getElementById('canYear')?.value||2025);const canScope2=document.getElementById('canScope')?.value||'fed';const canProv2=document.getElementById('canProv')?.value||'SK';const applyBPA2=document.getElementById('canBPA')?.checked!==false;const cad=inc*fx2;const fedBk2=CAN_FED[canYear2];const fedBpa2=applyBPA2?CAN_BPA[canYear2]:0;const abate2=canScope2==='prov'?(PROV[canProv2]?.abate||0):0;const bd=canTaxBreakdown(cad,fedBk2,fedBpa2,canScope2,canProv2,canYear2,applyBPA2,abate2);h+=`<div style="border-top:1px solid rgba(255,255,255,0.06);padding:4px 0 2px"><div style="display:flex;align-items:center;gap:4px;font-size:10px;font-family:'IBM Plex Mono',monospace"><div style="width:6px;height:6px;border-radius:50%;background:#5ecf96"></div><span style="color:#5ecf96;font-weight:500">CAN</span><span style="color:#8b92a5">CA$${Math.round(cad).toLocaleString()}</span></div><div style="padding-left:10px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:#8b92a5;margin-top:1px">Marg: <span style="color:#5ecf96;font-weight:500">${(bd.totalMarg*100).toFixed(1)}%</span> · Eff: <span style="color:#5ecf96;font-weight:500">${bd.eff.toFixed(1)}%</span></div></div>`;}
-      tp.innerHTML=h;tp.style.display='block';const wrap=document.getElementById('chartWrap');let lx=cx.tooltip.caretX+14;if(lx+220>wrap.offsetWidth)lx=cx.tooltip.caretX-228;tp.style.left=lx+'px';tp.style.top=Math.max(0,cx.tooltip.caretY-20)+'px';
-    }}},
+    plugins:{legend:{display:false},tooltip:{enabled:false,external:buildTooltip}},
     interaction:{mode:'index',intersect:false},
-    scales:{x:{type:'linear',min:0,max:chartMax,ticks:{color:'#555e72',font:{size:10,family:"'IBM Plex Mono'"},callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1000).toFixed(0)+'k'),maxTicksLimit:10},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.08)'}},y:{min:0,max:62,ticks:{color:'#555e72',font:{size:10,family:"'IBM Plex Mono'"},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.08)'}}}}});
+    scales:{
+      x:{type:'linear',min:0,max:chartMax,ticks:{color:axisColor,font:{size:11,family:"'IBM Plex Mono'",weight:'500'},callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1000).toFixed(0)+'k'),maxTicksLimit:10},grid:{color:gridCol},border:{color:gridBorder}},
+      y:{min:0,max:yMax,ticks:{color:axisColor,font:{size:11,family:"'IBM Plex Mono'",weight:'500'},callback:v=>v+'%'},grid:{color:gridCol},border:{color:gridBorder}}
+    }}});
   updateZoomUI();renderLookup();
 }
 
-// ── Lookup ─────────────────────────────────────────────────────────────
+// ── TOOLTIP — hover anywhere on line ─────────────────────────────────
+function buildTooltip(cx){
+  const tp=document.getElementById('TP');
+  if(!cx.tooltip.dataPoints||cx.tooltip.opacity===0){tp.style.display='none';return;}
+  const inc=cx.tooltip.dataPoints[0]?.parsed?.x;
+  if(inc==null){tp.style.display='none';return;}
+  const PAL=getPal();const cc=getCanCol();
+  const fx=parseFloat(document.getElementById('fxVal')?.value||1.356);
+  const stCode=document.getElementById('stateSelect')?.value||'TX';
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const tc=isDark?'#e8eaf0':'#1a1d26';const sc=isDark?'#8b92a5':'#5a6070';
+
+  let h=`<div style="font-weight:600;margin-bottom:6px;color:${tc};font-family:'IBM Plex Mono',monospace;font-size:12px">$${Math.round(inc).toLocaleString()}</div>`;
+  series.forEach((s,i)=>{
+    const col=PAL[i%PAL.length];
+    const fedBk=USB[s.type][s.year][s.status]||USB[s.type][s.year].single;
+    const ded=s.sd?STD[s.year][s.status]||STD[s.year].single:0;
+    const ti=Math.max(0,inc-ded);const fedM=mrate(fedBk,ti)*100;const fedE=totalTax(fedBk,ti);
+    let stM=0,stT=0;if(showState){const st=stateTax(stCode,inc,s.status);stM=st.marg*100;stT=st.tax;}
+    let ficaM=0,ficaT=0;if(showFICA){const fc=ficaCalc(inc,s.status);ficaM=fc.marg*100;ficaT=fc.total;}
+    const niit=showNIIT&&s.type==='capgains'&&inc>NIIT_T[s.status];
+    const totalM=fedM+stM+ficaM+(niit?3.8:0);
+    const totalE=inc>0?((fedE+stT+ficaT)/inc*100):0;
+    h+=`<div style="border-top:1px solid rgba(128,128,128,0.15);padding:4px 0 2px"><div style="display:flex;align-items:center;gap:4px;font-size:10px;font-family:'IBM Plex Mono',monospace"><div style="width:6px;height:6px;border-radius:50%;background:${col}"></div><span style="color:${tc};font-weight:500">S${i+1}</span><span style="color:${sc}">${s.year}</span></div><div style="padding-left:10px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:${sc};margin-top:1px">Marg: <span style="color:${col};font-weight:500">${totalM.toFixed(1)}%</span>${showEff?` · Eff: <span style="color:${col};font-weight:500">${totalE.toFixed(1)}%</span>`:''}</div></div>`;
+  });
+  if(showCan){
+    const canYear2=parseInt(document.getElementById('canYear')?.value||2025);const canScope2=document.getElementById('canScope')?.value||'fed';const canProv2=document.getElementById('canProv')?.value||'SK';const applyBPA2=document.getElementById('canBPA')?.checked!==false;const cad=inc*fx;const fedBk2=CAN_FED[canYear2];const fedBpa2=applyBPA2?CAN_BPA[canYear2]:0;const abate2=canScope2==='prov'?(PROV[canProv2]?.abate||0):0;const bd=canTaxBreakdown(cad,fedBk2,fedBpa2,canScope2,canProv2,canYear2,applyBPA2,abate2);const cpp=showFICA?cppEiCalc(cad):null;const cppM=showFICA?cppEiMargRate(cad)*100:0;const totalM=(bd.totalMarg*100+cppM).toFixed(1);const effT=cad>0?((bd.total+(cpp?cpp.total:0))/cad*100).toFixed(1):0;
+    h+=`<div style="border-top:1px solid rgba(128,128,128,0.15);padding:4px 0 2px"><div style="display:flex;align-items:center;gap:4px;font-size:10px;font-family:'IBM Plex Mono',monospace"><div style="width:6px;height:6px;border-radius:50%;background:${cc}"></div><span style="color:${cc};font-weight:500">CAN</span><span style="color:${sc}">CA$${Math.round(cad).toLocaleString()}</span></div><div style="padding-left:10px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:${sc};margin-top:1px">Marg: <span style="color:${cc};font-weight:500">${totalM}%</span> · Eff: <span style="color:${cc};font-weight:500">${effT}%</span></div></div>`;
+  }
+  tp.innerHTML=h;tp.style.display='block';
+  const wrap=document.getElementById('chartWrap');let lx=cx.tooltip.caretX+14;
+  if(lx+230>wrap.offsetWidth)lx=cx.tooltip.caretX-238;
+  tp.style.left=lx+'px';tp.style.top=Math.max(0,cx.tooltip.caretY-20)+'px';
+}
+
+// ── LOOKUP ────────────────────────────────────────────────────────────
 function fmt(n){return n.toLocaleString('en-CA',{maximumFractionDigits:0});}
 function fmtP(n){return n.toFixed(2)+'%';}
 function renderLookup(){
-  const raw=parseFloat(document.getElementById('incomeInput').value);const eq=document.getElementById('incomeEqLabel');const body=document.getElementById('lookupBody');
-  if(!raw||raw<=0){eq.textContent='';body.innerHTML='<div style="font-size:12px;color:var(--text3);font-style:italic;font-family:var(--mono)">Enter an income above to see rates.</div>';return;}
-  const fx=parseFloat(document.getElementById('fxVal')?.value||1.356);const incUSD=curCurrency==='USD'?raw:raw/fx;const incCAD=curCurrency==='CAD'?raw:raw*fx;
+  const raw=parseFloat(document.getElementById('incomeInput').value);
+  const eq=document.getElementById('incomeEqLabel');const body=document.getElementById('lookupBody');
+  if(!raw||raw<=0){eq.textContent='';body.innerHTML='<div style="font-size:12px;color:var(--text3);font-style:italic;font-family:\'IBM Plex Mono\',monospace">Enter an income above to see rates.</div>';return;}
+  const fx=parseFloat(document.getElementById('fxVal')?.value||1.356);
+  const incUSD=curCurrency==='USD'?raw:raw/fx;const incCAD=curCurrency==='CAD'?raw:raw*fx;
   eq.textContent=curCurrency==='USD'?`≈ CA$${fmt(incCAD)}`:`≈ US$${fmt(incUSD)}`;
-  const stCode=document.getElementById('stateSelect')?.value||'TX';const stData=STATES[stCode];let usHTML='';
+  const stCode=document.getElementById('stateSelect')?.value||'TX';const stData=STATES[stCode];
+  const includeFICA=showFICA&&(document.getElementById('ficaLookup')?.checked!==false);
+  const PAL=getPal();let usHTML='';
+
   series.forEach((s,i)=>{
-    const col=PAL[i%PAL.length].l;const fedBk=USB[s.type][s.year][s.status]||USB[s.type][s.year].single;const ded=s.sd?STD[s.year][s.status]||STD[s.year].single:0;const taxable=Math.max(0,incUSD-ded);const fedMarg=mrate(fedBk,taxable)*100;const fedTotalTax=totalTax(fedBk,taxable);const st=showState?stateTax(stCode,incUSD,s.status):{tax:0,marg:0,type:'none'};const stMarg=st.marg*100;const combMarg=fedMarg+stMarg;const combEff=incUSD>0?((fedTotalTax+st.tax)/incUSD)*100:0;const niit=showNIIT&&s.type==='capgains'&&incUSD>NIIT_T[s.status];
+    const col=PAL[i%PAL.length];
+    const fedBk=USB[s.type][s.year][s.status]||USB[s.type][s.year].single;
+    const ded=s.sd?STD[s.year][s.status]||STD[s.year].single:0;
+    const taxable=Math.max(0,incUSD-ded);
+    const fedMarg=mrate(fedBk,taxable)*100;const fedTotalTax=totalTax(fedBk,taxable);
+    const st=showState?stateTax(stCode,incUSD,s.status):{tax:0,marg:0,type:'none'};
+    const stMarg=st.marg*100;
+    const fc=includeFICA?ficaCalc(incUSD,s.status):{ss:0,mc:0,addl_mc:0,total:0,marg:0};
+    const ficaMarg=fc.marg*100;
+    const combMarg=fedMarg+stMarg+ficaMarg;
+    const combEff=incUSD>0?((fedTotalTax+st.tax+fc.total)/incUSD)*100:0;
+    const niit=showNIIT&&s.type==='capgains'&&incUSD>NIIT_T[s.status];
+
     let fedBkRows='';fedBk.forEach(b=>{const isAct=taxable>b.lo&&(b.hi>=1e8||taxable<=b.hi);const range=b.hi>=1e8?`$${fmt(b.lo+ded)}+`:`$${fmt(b.lo+ded)}–$${fmt(b.hi+ded)}`;fedBkRows+=`<div class="rate-bracket-row${isAct?' active-bracket':''}"><span class="bk-arrow">${isAct?'▶':' '}</span><span>${(b.r*100).toFixed(1)}%</span><span style="margin-left:auto;color:var(--text3)">${range}</span></div>`;});
-    let stBkRows='';if(showState&&st.type==='progressive'&&st.bk){st.bk.forEach(b=>{const isAct=incUSD>b.lo&&(b.hi>=1e8||incUSD<=b.hi);const range=b.hi>=1e8?`$${fmt(b.lo)}+`:`$${fmt(b.lo)}–$${fmt(b.hi)}`;stBkRows+=`<div class="rate-bracket-row${isAct?' active-bracket':''}"><span class="bk-arrow">${isAct?'▶':' '}</span><span>${(b.r*100).toFixed(1)}%</span><span style="margin-left:auto;color:var(--text3)">${range}</span></div>`;});}else if(showState&&st.type==='flat')stBkRows=`<div class="rate-bracket-row active-bracket"><span class="bk-arrow">▶</span><span>${(stData.rate*100).toFixed(2)}% flat</span><span style="margin-left:auto;color:var(--text3)">All income</span></div>`;else if(showState&&st.type==='none')stBkRows=`<span class="no-tax-badge">No state income tax</span>`;
-    usHTML+=`<div class="rate-section" style="border-top-color:${col}"><div class="rate-section-title"><div style="width:8px;height:8px;border-radius:2px;background:${col}"></div>S${i+1}: ${s.year} ${SLF[s.status]} — ${TL[s.type]}</div><div class="rate-row"><div><div class="rate-lbl">${showState?'Combined marginal':'Federal marginal'}</div>${niit?'<div class="niit-note">+3.8% NIIT applies</div>':''}</div><div style="text-align:right"><div class="rate-val" style="color:${col}">${fmtP(niit?combMarg+3.8:combMarg)}</div>${showState&&stData.type!=='none'?`<div class="rate-sub">Fed ${fmtP(fedMarg)} + ${stData.name} ${fmtP(stMarg)}</div>`:''}</div></div><div class="rate-row"><div><div class="rate-lbl">${showState?'Combined effective':'Federal effective'}</div><div class="rate-sub">total tax ÷ gross income</div></div><div style="text-align:right"><div class="rate-val" style="color:${col}">${fmtP(combEff)}</div><div class="rate-sub">$${fmt(fedTotalTax+st.tax)} on $${fmt(incUSD)}</div>${showState&&stData.type!=='none'?`<div class="rate-sub">Fed $${fmt(fedTotalTax)} + State $${fmt(st.tax)}</div>`:''}</div></div><div style="margin-top:10px;border-top:1px solid rgba(255,255,255,0.05);padding-top:8px"><div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-family:var(--mono)">Federal brackets (taxable $${fmt(taxable)})</div>${fedBkRows}${showState?`<div style="font-size:10px;color:var(--text3);margin:6px 0 4px;font-family:var(--mono)">${stData.name} brackets</div>${stBkRows}`:''}</div></div>`;
+    let stBkRows='';
+    if(showState&&st.type==='progressive'&&st.bk){st.bk.forEach(b=>{const isAct=incUSD>b.lo&&(b.hi>=1e8||incUSD<=b.hi);const range=b.hi>=1e8?`$${fmt(b.lo)}+`:`$${fmt(b.lo)}–$${fmt(b.hi)}`;stBkRows+=`<div class="rate-bracket-row${isAct?' active-bracket':''}"><span class="bk-arrow">${isAct?'▶':' '}</span><span>${(b.r*100).toFixed(1)}%</span><span style="margin-left:auto;color:var(--text3)">${range}</span></div>`;});}
+    else if(showState&&st.type==='flat')stBkRows=`<div class="rate-bracket-row active-bracket"><span class="bk-arrow">▶</span><span>${(stData.rate*100).toFixed(2)}% flat</span><span style="margin-left:auto;color:var(--text3)">All income</span></div>`;
+    else if(showState&&st.type==='none')stBkRows=`<span class="no-tax-badge">No state income tax</span>`;
+
+    let ficaBlock='';
+    if(includeFICA){ficaBlock=`<div style="margin-top:8px;border-top:1px solid var(--border2);padding-top:6px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;font-family:'IBM Plex Mono',monospace">FICA breakdown (employee share, 2025)</div><div class="fica-row-detail"><span>Social Security (6.2% ≤ $176,100)</span><span>$${fmt(fc.ss)}</span></div><div class="fica-row-detail"><span>Medicare (1.45%)</span><span>$${fmt(fc.mc)}</span></div>${fc.addl_mc>0?`<div class="fica-row-detail"><span>Add'l Medicare (0.9%)</span><span>$${fmt(fc.addl_mc)}</span></div>`:''}<div class="fica-row-detail" style="color:var(--text2);font-weight:500"><span>Total FICA</span><span>$${fmt(fc.total)}</span></div></div>`;}
+
+    usHTML+=`<div class="rate-section" style="border-top-color:${col}">
+      <div class="rate-section-title"><div style="width:8px;height:8px;border-radius:2px;background:${col}"></div>S${i+1}: ${s.year} ${SLF[s.status]} — ${TL[s.type]}</div>
+      <div class="rate-row"><div><div class="rate-lbl">${includeFICA?'Combined marginal (Fed+FICA':showState&&stData.type!=='none'?'Combined marginal (Fed+State':'Federal marginal'}${includeFICA&&showState&&stData.type!=='none'?'+State':''})${includeFICA||showState?')':''}</div>${niit?'<div class="niit-note">+3.8% NIIT applies</div>':''}</div><div style="text-align:right"><div class="rate-val" style="color:${col}">${fmtP(niit?combMarg+3.8:combMarg)}</div>${includeFICA?`<div class="rate-sub">Fed ${fmtP(fedMarg)} · FICA ${fmtP(ficaMarg)}${showState&&stData.type!=='none'?' · '+stData.name+' '+fmtP(stMarg):''}</div>`:showState&&stData.type!=='none'?`<div class="rate-sub">Fed ${fmtP(fedMarg)} + ${stData.name} ${fmtP(stMarg)}</div>`:''}</div></div>
+      <div class="rate-row"><div><div class="rate-lbl">${includeFICA||showState?'Combined effective':'Federal effective'}</div><div class="rate-sub">total tax ÷ gross income</div></div><div style="text-align:right"><div class="rate-val" style="color:${col}">${fmtP(combEff)}</div><div class="rate-sub">$${fmt(fedTotalTax+st.tax+fc.total)} on $${fmt(incUSD)}</div></div></div>
+      <div style="margin-top:10px;border-top:1px solid var(--border2);padding-top:8px"><div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-family:'IBM Plex Mono',monospace">Federal brackets (taxable $${fmt(taxable)})</div>${fedBkRows}${showState?`<div style="font-size:10px;color:var(--text3);margin:6px 0 4px;font-family:'IBM Plex Mono',monospace">${stData.name} brackets</div>${stBkRows}`:''}</div>
+      ${ficaBlock}
+    </div>`;
   });
+
   let canHTML='';
-  if(showCan){const canScope=document.getElementById('canScope')?.value||'fed';const canProv=document.getElementById('canProv')?.value||'SK';const canYear=parseInt(document.getElementById('canYear')?.value||2025);const applyBPA=document.getElementById('canBPA')?.checked!==false;const fedBk=CAN_FED[canYear];const fedBpa=applyBPA?CAN_BPA[canYear]:0;const abate=canScope==='prov'?(PROV[canProv]?.abate||0):0;const bd=canTaxBreakdown(incCAD,fedBk,fedBpa,canScope,canProv,canYear,applyBPA,abate);const isON=canScope==='prov'&&canProv==='ON';const pd=canScope==='prov'?PROV[canProv]:null;const scopeLabel=canScope==='fed'?`Canada ${canYear} Federal`:`Canada ${canYear} Fed + ${pd.name}${isON?' (incl. surtax)':''}`;const tiF=Math.max(0,incCAD-(applyBPA?CAN_BPA[canYear]:0));let fedBkRows='';fedBk.forEach(b=>{const isAct=tiF>b.lo&&(b.hi>=1e8||tiF<=b.hi);const bpa2=applyBPA?CAN_BPA[canYear]:0;const range=b.hi>=1e8?`CA$${fmt(b.lo+bpa2)}+`:`CA$${fmt(b.lo+bpa2)}–CA$${fmt(b.hi+bpa2)}`;const adjR=b.r*(1-abate)*100;fedBkRows+=`<div class="rate-bracket-row${isAct?' active-bracket':''}"><span class="bk-arrow" style="color:#5ecf96">${isAct?'▶':' '}</span><span>${adjR.toFixed(2)}%${abate?' (net)':''}</span><span style="margin-left:auto;color:var(--text3)">${range}</span></div>`;});let provRows='';if(canScope==='prov'&&pd){const pbpa=applyBPA?(pd.bpa[canYear]||pd.bpa[2025]):0;const provBk=pd.bk[canYear]||pd.bk[2025];const tiP=Math.max(0,incCAD-pbpa);provBk.forEach(b=>{const isAct=tiP>b.lo&&(b.hi>=1e8||tiP<=b.hi);const range=b.hi>=1e8?`CA$${fmt(b.lo+pbpa)}+`:`CA$${fmt(b.lo+pbpa)}–CA$${fmt(b.hi+pbpa)}`;provRows+=`<div class="rate-bracket-row${isAct?' active-bracket':''}"><span class="bk-arrow" style="color:#5ecf96">${isAct?'▶':' '}</span><span>${(b.r*100).toFixed(2)}%</span><span style="margin-left:auto;color:var(--text3)">${range}</span></div>`;});}
-  canHTML=`<div style="margin-top:12px"><div class="rate-grid"><div class="rate-section" style="border-top-color:#5ecf96"><div class="rate-section-title"><div style="width:8px;height:8px;border-radius:2px;background:#5ecf96"></div>${scopeLabel}<span style="margin-left:auto;font-size:10px;color:var(--text3)">CA$${fmt(incCAD)}</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><div class="rate-lbl">Combined marginal</div><div class="rate-val" style="color:#5ecf96">${fmtP(bd.totalMarg*100)}</div>${canScope==='prov'?`<div class="rate-sub">Fed ${fmtP(bd.fedMarg*100)} + Prov ${fmtP(bd.provMarg*100)}</div>`:''}</div><div><div class="rate-lbl">Combined effective</div><div class="rate-val" style="color:#5ecf96">${fmtP(bd.eff)}</div><div class="rate-sub">CA$${fmt(bd.total)} on CA$${fmt(incCAD)}</div></div>${canScope==='prov'?`<div><div class="rate-lbl">Federal tax</div><div style="font-size:15px;font-weight:600;font-family:var(--mono);color:var(--text)">CA$${fmt(bd.fedTax)}</div></div><div><div class="rate-lbl">Prov. tax${isON?' (incl. surtax)':''}</div><div style="font-size:15px;font-weight:600;font-family:var(--mono);color:var(--text)">CA$${fmt(bd.provTax)}</div></div>`:''}</div><div style="display:grid;grid-template-columns:${canScope==='prov'?'1fr 1fr':'1fr'};gap:10px"><div><div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-family:var(--mono)">Federal brackets</div>${fedBkRows}</div>${canScope==='prov'&&pd?`<div><div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-family:var(--mono)">${pd.name} brackets${isON?' + surtax':''}</div>${provRows}${isON?`<div style="font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)">Surtax: 20% on prov. tax >CA$5,710 / +36% >CA$7,307</div>`:''}</div>`:''}</div></div></div></div>`;}
-  else canHTML=`<div style="margin-top:10px;font-size:11px;color:var(--text3);font-style:italic;font-family:var(--mono)">Enable Canadian tax rates overlay to compare Canadian rates here.</div>`;
+  if(showCan){
+    const canScope=document.getElementById('canScope')?.value||'fed';const canProv=document.getElementById('canProv')?.value||'SK';const canYear=parseInt(document.getElementById('canYear')?.value||2025);const applyBPA=document.getElementById('canBPA')?.checked!==false;const fedBk=CAN_FED[canYear];const fedBpa=applyBPA?CAN_BPA[canYear]:0;const abate=canScope==='prov'?(PROV[canProv]?.abate||0):0;const bd=canTaxBreakdown(incCAD,fedBk,fedBpa,canScope,canProv,canYear,applyBPA,abate);const isON=canScope==='prov'&&canProv==='ON';const pd=canScope==='prov'?PROV[canProv]:null;const scopeLabel=canScope==='fed'?`Canada ${canYear} Federal`:`Canada ${canYear} Fed + ${pd.name}${isON?' (incl. surtax)':''}`;const tiF=Math.max(0,incCAD-(applyBPA?CAN_BPA[canYear]:0));
+    const cppData=includeFICA?cppEiCalc(incCAD):null;const cppMarg=includeFICA?cppEiMargRate(incCAD)*100:0;const canCombMarg=bd.totalMarg*100+cppMarg;const canCombEff=incCAD>0?((bd.total+(cppData?cppData.total:0))/incCAD*100):0;
+    let fedBkRows='';fedBk.forEach(b=>{const isAct=tiF>b.lo&&(b.hi>=1e8||tiF<=b.hi);const bpa2=applyBPA?CAN_BPA[canYear]:0;const range=b.hi>=1e8?`CA$${fmt(b.lo+bpa2)}+`:`CA$${fmt(b.lo+bpa2)}–CA$${fmt(b.hi+bpa2)}`;const adjR=b.r*(1-abate)*100;fedBkRows+=`<div class="rate-bracket-row${isAct?' active-bracket':''}"><span class="bk-arrow" style="color:${getCanCol()}">${isAct?'▶':' '}</span><span>${adjR.toFixed(2)}%${abate?' (net)':''}</span><span style="margin-left:auto;color:var(--text3)">${range}</span></div>`;});
+    let provRows='';if(canScope==='prov'&&pd){const pbpa=applyBPA?(pd.bpa[canYear]||pd.bpa[2025]):0;const provBk=pd.bk[canYear]||pd.bk[2025];const tiP=Math.max(0,incCAD-pbpa);provBk.forEach(b=>{const isAct=tiP>b.lo&&(b.hi>=1e8||tiP<=b.hi);const range=b.hi>=1e8?`CA$${fmt(b.lo+pbpa)}+`:`CA$${fmt(b.lo+pbpa)}–CA$${fmt(b.hi+pbpa)}`;provRows+=`<div class="rate-bracket-row${isAct?' active-bracket':''}"><span class="bk-arrow" style="color:${getCanCol()}">${isAct?'▶':' '}</span><span>${(b.r*100).toFixed(2)}%</span><span style="margin-left:auto;color:var(--text3)">${range}</span></div>`;});}
+    let cppBlock='';if(cppData)cppBlock=`<div style="margin-top:8px;border-top:1px solid var(--border2);padding-top:6px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;font-family:'IBM Plex Mono',monospace">CPP/EI breakdown (employee share, 2025)</div><div class="fica-row-detail"><span>CPP1 (5.95%, max CA$3,868)</span><span>CA$${fmt(cppData.cpp1)}</span></div><div class="fica-row-detail"><span>CPP2 (4%, $68,500–$73,200)</span><span>CA$${fmt(cppData.cpp2)}</span></div><div class="fica-row-detail"><span>EI (1.657%, max CA$1,089)</span><span>CA$${fmt(cppData.ei)}</span></div><div class="fica-row-detail" style="color:var(--text2);font-weight:500"><span>Total CPP+EI</span><span>CA$${fmt(cppData.total)}</span></div></div>`;
+    canHTML=`<div style="margin-top:12px"><div class="rate-grid"><div class="rate-section" style="border-top-color:${getCanCol()}"><div class="rate-section-title"><div style="width:8px;height:8px;border-radius:2px;background:${getCanCol()}"></div>${scopeLabel}${includeFICA?'+CPP/EI':''}<span style="margin-left:auto;font-size:10px;color:var(--text3)">CA$${fmt(incCAD)}</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><div class="rate-lbl">Marginal${includeFICA?' (incl. CPP/EI)':''}</div><div class="rate-val" style="color:${getCanCol()}">${fmtP(canCombMarg)}</div>${canScope==='prov'?`<div class="rate-sub">Fed ${fmtP(bd.fedMarg*100)} + Prov ${fmtP(bd.provMarg*100)}${includeFICA?' + CPP/EI '+fmtP(cppMarg):''}</div>`:includeFICA?`<div class="rate-sub">Tax ${fmtP(bd.totalMarg*100)} + CPP/EI ${fmtP(cppMarg)}</div>`:''}</div><div><div class="rate-lbl">Effective${includeFICA?' (incl. CPP/EI)':''}</div><div class="rate-val" style="color:${getCanCol()}">${fmtP(canCombEff)}</div><div class="rate-sub">CA$${fmt(bd.total+(cppData?cppData.total:0))} on CA$${fmt(incCAD)}</div></div>${canScope==='prov'?`<div><div class="rate-lbl">Federal tax</div><div style="font-size:15px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--text)">CA$${fmt(bd.fedTax)}</div></div><div><div class="rate-lbl">Prov. tax${isON?' (incl. surtax)':''}</div><div style="font-size:15px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--text)">CA$${fmt(bd.provTax)}</div></div>`:''}</div><div style="display:grid;grid-template-columns:${canScope==='prov'?'1fr 1fr':'1fr'};gap:10px"><div><div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-family:'IBM Plex Mono',monospace">Federal brackets</div>${fedBkRows}</div>${canScope==='prov'&&pd?`<div><div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-family:'IBM Plex Mono',monospace">${pd.name} brackets${isON?' + surtax':''}</div>${provRows}${isON?`<div style="font-size:10px;color:var(--text3);margin-top:4px;font-family:'IBM Plex Mono',monospace">Surtax: 20% on prov. tax >CA$5,710 / +36% >CA$7,307</div>`:''}</div>`:''}</div>${cppBlock}</div></div></div>`;
+  } else {canHTML=`<div style="margin-top:10px;font-size:11px;color:var(--text3);font-style:italic;font-family:'IBM Plex Mono',monospace">Enable Canadian tax rates overlay to compare here.</div>`;}
   body.innerHTML=`<div class="rate-grid">${usHTML}</div>${canHTML}`;
 }
 
-// ── Init ──────────────────────────────────────────────────────────────
-buildStateDropdown();
-renderCtrl();
-initDrag();
-draw();
+// ── INIT ──────────────────────────────────────────────────────────────
+buildStateDropdown();renderCtrl();initDrag();draw();
 </script>
 </body>
 </html>
